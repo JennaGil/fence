@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#F6EADA">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -528,6 +529,7 @@ const { pensOf, deadCells, judge } = __m.gen;
 const { audio, tone, buzz } = __m.core;
 
 const PAL = ['#F4A97A', '#9DBBE8', '#F2A7C4', '#E6CF6A', '#B8A4E0', '#8FD0B8'];
+const GRASS = ['#DCE9B8', '#D3E2AA'];   // 칸 바둑무늬. build.py 에셋 보고서가 PAL과 함께 읽는다
 const WIN = [392, 494, 587];
 // 칠하기 연출: 우리 간격 min(STEP, SPAN/우리 수) + 마지막 우리 FILL → 우리 수와 무관하게 0.9초 이하
 const IDLE = 15000, STEP = 90, SPAN = 500, FILL = 400;
@@ -687,7 +689,7 @@ function createBoard(B, cb) {
   }
   function loop(t) {
     cx.clearRect(0, 0, S, S);
-    for (let i = 0; i < P.R * P.C; i++) { const c = i % P.C, r = i / P.C | 0; cx.fillStyle = (c + r) % 2 ? '#D3E2AA' : '#DCE9B8'; cx.fillRect(pad + c * cs, pad + r * cs, cs, cs); }
+    for (let i = 0; i < P.R * P.C; i++) { const c = i % P.C, r = i / P.C | 0; cx.fillStyle = GRASS[(c + r) % 2]; cx.fillRect(pad + c * cs, pad + r * cs, cs, cs); }
     cx.globalAlpha = .35; done.forEach(R => { cx.fillStyle = PAL[R.k % PAL.length]; R.reg.forEach(i => cx.fillRect(pad + i % P.C * cs, pad + (i / P.C | 0) * cs, cs, cs)); });
     // 갈 곳 없는 칸: 다 지은 우리의 단색 칠과 헷갈리지 않게 연한 붉은 바탕 + 사선 빗금
     if (!solved) dead.forEach((d, i) => {
@@ -880,9 +882,9 @@ function openD() {
 // cur가 없는 옛 저장은 오늘의 판에 선분이 있으면 오늘의 판
 function resume() {
   const d = dayNum(), D = state.D && state.D.day === d && state.D.fen.length && !solvedOn(rec, d);
-  if (state.cur === 'R' && state.R) openR(state.R.st);
-  else if (D && (state.cur === 'D' || !state.cur)) openD();
-  else openL();
+  if (state.cur === 'R' && state.R) { openR(state.R.st); boardEntry('R'); }
+  else if (D && (state.cur === 'D' || !state.cur)) { openD(); boardEntry('D'); }
+  else { openL(); toDepth(0); }
 }
 // 오늘의 판 알림 점: 사다리를 2판 이상 푼 뒤부터(첫 판 시범과 겹치지 않게)
 function paintDots() { const on = Object.keys(rec.best).length >= 2 && !solvedOn(rec, dayNum()); document.querySelectorAll('.dot').forEach(d => d.hidden = !on); }
@@ -911,7 +913,6 @@ function paintPick() {
   }
   $('pk').innerHTML = h;
 }
-$('pk').addEventListener('click', e => { const b = e.target.closest('button[data-st]'); if (!b) return; const st = +b.dataset.st; st === state.L.st ? openL() : openR(st); });
 
 function paintSet() {
   const solved = Object.keys(rec.best).length, avg = rec.solves ? rec.solveMs / rec.solves : null;
@@ -935,7 +936,7 @@ $('no').onclick = () => { $('ok').hidden = true; hold.hidden = false; };
 $('yes').onclick = () => {
   rec = blankRec(); session(); save('rec', rec);
   drop('state'); state = { L: { st: 1, fen: [], ms: 0 }, demo: 0, v: GEN_VER }; save('state', state);
-  openL();
+  openL(); toDepth(0);
 };
 
 // 기기 옮기기. 복사는 탭(사용자 활성화) 안에서 바로 클립보드를 시도하고, 안 되면 글을 골라 둔 채 보여 준다
@@ -955,24 +956,72 @@ function copyRec() {
 $('cp').onclick = copyRec;
 $('ps').onclick = () => {
   const inc = move.decode($('psTx').value);
-  if (!inc) return msg('psMsg', '기록 글이 아니거나 일부가 빠졌어요. FARM1:부터 끝까지 다시 복사해 붙여 넣으세요.', true);
+  // 거절된 글은 골라 둔다: 새 글을 붙이면 덮어쓰이게(이어 붙어 다시 거절되지 않게)
+  if (!inc) { $('psTx').focus(); $('psTx').select(); return msg('psMsg', '기록 글이 아니거나 일부가 빠졌어요. FARM1:부터 끝까지 다시 복사해 붙여 넣으세요.', true); }
   const before = Object.keys(rec.best).length;
   move.merge(rec, state, inc); save('rec', rec); save('state', state);
   $('psTx').value = '';
   msg('psMsg', `합쳤어요. 푼 판 ${before} → ${Object.keys(rec.best).length} · 이어 하기 ${state.L.st}판`);
 };
 
-$('mn').onclick = () => route.go('menu');
+// 뒤로 가기. 판(L 사다리 진행 판)이 루트(d 0)이고, 판에서의 뒤로 가기는 브라우저/OS에 맡긴다.
+// 다른 화면은 들어갈 때 한 칸씩 쌓는다. d 1은 언제나 메뉴, 오늘의 판·다시 푸는 판은 메뉴 바로 위(d 2).
+// popstate는 도착한 칸의 화면을 그린다(상대 이동이 아니라서 연타해도 두 칸씩 빠지지 않는다). 앱 안 ◀도 history.back()
+let H = true;
+try { history.replaceState(history.state, ''); } catch (e) { H = false; }   // 기록을 못 쓰는 틀이면 예전 ◀ 동작
+let depth = H && history.state ? history.state.d | 0 : 0, popping = false, afterPop = null;
+function push(s, extra) { if (!H) return; depth++; history.pushState({ d: depth, s, ...extra }, ''); }
+// n칸으로 내려간 뒤 fn. 올라가는 경우는 0 -> 1(메뉴)뿐
+function toDepth(n, fn = () => {}) {
+  if (!H || depth === n) return fn();
+  if (depth < n) { push('menu'); return fn(); }
+  afterPop = fn; popping = true; history.go(n - depth);
+}
+// 오늘의 판·다시 푸는 판은 메뉴 위에. 오늘의 판을 이미 풀었으면 판 대신 결과 화면
+const boardEntry = m => toDepth(1, () => route.cur === 'board' ? push('board', { m }) : push(route.cur));
+function goBack(t) {
+  if (popping) return;
+  if (!H || depth === 0) return legacy(t);
+  popping = true; history.back();
+}
+function legacy(t) {
+  if (t === 'board' && cur.mode === 'L' && cur.st !== state.L.st) openL(); else route.go(t);
+}
+function land(h) {
+  if (!h.d) {
+    // 붙여넣기로 사다리 진행 판이 바뀌었으면 옛 판 대신 새 진행 판으로
+    if (cur.mode === 'L' && cur.st === state.L.st) route.go('board'); else openL();
+  } else if (h.s === 'board') {
+    if (cur.mode === h.m) { if (route.cur !== 'board') route.go('board'); return; }   // 메뉴 ◀: 열기 직전 판을 그대로
+    if (h.m === 'R' && state.R) openR(state.R.st);
+    else if (h.m === 'D' && !solvedOn(rec, dayNum())) openD();
+    else { history.replaceState({ d: h.d, s: 'menu' }, ''); route.go('menu'); }
+  } else if (h.s !== route.cur) route.go(h.s);
+}
+if (H) addEventListener('popstate', e => {
+  const h = e.state || { d: 0 }, mine = popping;
+  popping = false; depth = h.d | 0;
+  if (afterPop) { const f = afterPop; afterPop = null; return f(); }
+  // 초기화 확인 칸이 열린 채 시스템 뒤로 가기: 확인 칸만 닫고 설정에 머문다
+  if (!mine && route.cur === 'set' && !$('ok').hidden) { $('ok').hidden = true; hold.hidden = false; return push('set'); }
+  land(h);
+});
+
+$('mn').onclick = () => { push('menu'); route.go('menu'); };
 $('re').onclick = () => board.clear();
-$('nx').onclick = () => openL();
-// 메뉴의 ◀(data-go=board)는 메뉴를 열기 직전의 판을 그 상태 그대로 다시 보인다
+$('nx').onclick = () => toDepth(0, openL);
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
   const t = b.dataset.go;
-  if (t === 'daily') openD(); else if (t === 'cont') openL();
-  // 붙여넣기로 사다리 진행 판이 바뀌었으면 옛 판 대신 새 진행 판으로
-  else if (t === 'board' && cur.mode === 'L' && cur.st !== state.L.st) openL();
-  else route.go(t, b.dataset.do);
+  if (b.closest('.top')) return goBack(t);   // ◀
+  if (t === 'cont') return toDepth(0, openL);
+  if (t === 'daily') { openD(); return boardEntry('D'); }
+  push(t); route.go(t, b.dataset.do);
 }));
+$('pk').addEventListener('click', e => {
+  const b = e.target.closest('button[data-st]'); if (!b) return;
+  const st = +b.dataset.st;
+  if (st === state.L.st) toDepth(0, openL); else { openR(st); boardEntry('R'); }
+});
 resume();
 
 })();
