@@ -90,6 +90,18 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0
 .msg{margin:12px 0 0;font-size:15px;line-height:1.5;font-weight:600}
 .msg.bad{color:#C8402F}
 #psClr{margin-top:8px}
+.lead{margin:8px 4px 0}
+#lp .lc{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#lp .lc b{font-size:22px}
+#lp .lc span{font-size:15px;font-weight:600;text-align:right;line-height:1.5;opacity:.8}
+#lp .lock{background-color:#3A2A1C0d;color:#3A2A1C77;border-radius:16px;padding:20px;font-size:20px;font-weight:700}
+#ld{text-align:center}
+#ld .tot{font-size:48px;font-weight:900;margin:4px 0 8px}
+.nb{font-weight:800;color:#E8563F;margin:0 0 12px}
+.splits{list-style:none;padding:0;margin:8px 0 0;text-align:left}
+.splits li{display:flex;justify-content:space-between;padding:8px 4px;border-top:1px solid #3A2A1C14;font-size:16px}
+.shr{margin-top:12px}
+.shr textarea{margin:12px 0 0;min-height:84px}
 
 </style>
 </head>
@@ -106,6 +118,7 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0
   <nav class="mnu">
     <button id="cont" data-go="cont"></button>
     <button data-go="daily">오늘의 판<i class="dot" hidden></i></button>
+    <button data-go="lap">타임 랩</button>
     <button data-go="pick">판 고르기</button>
     <button data-go="book">도감</button>
     <button data-go="set">설정</button>
@@ -114,6 +127,17 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0
 <section id="s-daily" class="scr" hidden>
   <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>오늘의 판</h1><i></i></div>
   <div id="dy" class="card"></div>
+  <div class="card shr" id="dyShr"><button class="wide" data-share>기록 공유</button><p class="msg" hidden></p><textarea readonly hidden aria-label="공유할 기록"></textarea></div>
+</section>
+<section id="s-lap" class="scr" hidden>
+  <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>타임 랩</h1><i></i></div>
+  <p class="mut lead">오늘의 5판을 이어 풀어요. 날마다 판이 바뀌고, 같은 날엔 누구나 같은 판이에요.</p>
+  <div id="lp" class="mnu"></div>
+</section>
+<section id="s-lapdone" class="scr" hidden>
+  <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="ldH"></h1><i></i></div>
+  <div id="ld" class="card"></div>
+  <div class="card shr" id="ldShr"><div class="row two"><button class="sub" id="ldRe">다시</button><button data-share>기록 공유</button></div><p class="msg" hidden></p><textarea readonly hidden aria-label="공유할 기록"></textarea></div>
 </section>
 <section id="s-pick" class="scr" hidden>
   <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>판 고르기</h1><i></i></div>
@@ -174,8 +198,12 @@ const SPR = ["data:image/webp;base64,UklGRrZOAABXRUJQVlA4WAoAAAAwAAAAfwEAfwEASUN
 const __m = {};
 __m.gen = (() => {
 // 울타리 치기 생성기·솔버·판정. design/toys/h3.src.html PURE 블록을 옮기고(candidate = h3 make), 난이도 띠(band·score·make)를 더했다.
-// 판을 바꾸는 변경이면 같은 판 번호의 판이 달라진다 → GEN_VER를 올릴 것(기록에 함께 저장됨). 2: 난이도 띠, 3: 쉬어 가는 판
-const GEN_VER = 3;
+// 판을 바꾸는 변경이면 같은 판 번호의 판이 달라진다 → GEN_VER를 올릴 것(기록에 함께 저장됨). 2: 난이도 띠, 3: 쉬어 가는 판, 4: 26~30판 7×8·판 크기 보정(1~25판은 3과 같음)
+const GEN_VER = 4;
+// 바로 앞 GEN_VER와 판이 같은 판 번호 상한(4: 1~25판, 오늘의 판 12판 구간 포함). 옛 버전에서 그리던 선분을 이 판까지는 살린다
+const SAME_AS_PREV_MAX = 25;
+// 저장된 선분(그 판의 GEN_VER v, 판 번호 st)을 지금 판에 그대로 쓸 수 있는가
+const fenKept = (v, st) => v === GEN_VER || (v === GEN_VER - 1 && st <= SAME_AS_PREV_MAX);
 // 판에 나오는 동물 종류 상한. 팩의 동물 수와 무관하게 고정해야 팩을 바꿔도 같은 판이 나온다(h3은 4장 팩으로 make(st,st,4))
 const MAXK = 4;
 function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -184,12 +212,16 @@ function ladder(st){
   if(st<=8)return{R:5,C:5,N:2,K:3,peg:1,gate:0,same:.8,emp:.3,big:0,maxPeg:2,maxClue:3};
   if(st<=15)return{R:6,C:6,N:3,K:3,peg:1,gate:1,same:.45,emp:.3,big:0};
   if(st<=25)return{R:7,C:7,N:3,K:4,peg:1,gate:1,same:.55,emp:.3,big:1};
+  // 7×7 → 8×8 계단을 둘로 나눈다(가로 7, 세로 8)
+  if(st<=30)return{R:8,C:7,N:3,K:4,peg:1,gate:1,same:.55,emp:.3,big:2};
   if(st<=40)return{R:8,C:8,N:3,K:4,peg:1,gate:1,same:.55,emp:.3,big:2};
   return{R:8,C:8,N:4,K:4,peg:1,gate:1,same:.55,emp:.3,big:1};
 }
-// 난이도 띠 [lo, hi](score의 D). 구간 시작 판의 띠에서 다음 구간 시작 판의 띠로 판 번호에 따라 선형으로 오른다. 61판부터는 마지막 값
+// 난이도 띠 [lo, hi](score의 D, SIZED판부터 D'). 구간 시작 판의 띠에서 다음 구간 시작 판의 띠로 판 번호에 따라 선형으로 오른다. 61판부터는 마지막 값
 // 쉬어 가는 판(5판부터 5의 배수): 두 구간 앞 시작 판의 띠(4~15판은 [0,12]). 한 구간 앞 띠로는 판이 커진 만큼 덜 쉬워서 A 수준 가정+되돌림이 구간 평균의 0.6~0.77배에 그쳤다
-const BANDS=[[1,[0,0]],[4,[12,26]],[9,[22,36]],[16,[32,46]],[26,[42,56]],[41,[54,70]],[61,[70,90]]];
+// 26판 띠는 16~25판 보간의 끝점이라 고정(1~25판이 GEN_VER 3과 같게). 31~40판은 8×8로 커진 만큼 띠를 평평하게 두고, 41판(N4)에서 띠를 올린다.
+// A 수준 시간(16~22판 대비): 26~30 ×1.26, 31~35 ×1.44, 36~40 ×1.58, 41~45 ×1.68, 46~50 ×1.73, 51~60 ×1.85
+const BANDS=[[1,[0,0]],[4,[12,26]],[9,[22,36]],[16,[32,46]],[26,[42,56]],[31,[48,63]],[36,[48,63]],[41,[67,84]],[51,[77,96]],[61,[86,106]]];
 const isRest=st=>st>=5&&st%5===0;
 function band(st){
   if(st<4)return[0,0];
@@ -300,10 +332,14 @@ function partition(g,N,emp,rnd){
 const GEN_NODES=5e4;
 // 띠 안에 드는 후보가 나올 때까지 다시 만든다. MAKE_TRIES개 안에 없으면 띠에 가장 가까운 후보
 const MAKE_TRIES=50;
+// 판 크기 보정: SIZED판부터 띠 비교에 D' = 100u·(자유 선분/FREE_REF) + 10(k-1). u가 비율이라 D만으로는 같은 D에서 큰 판이 더 무겁다
+// FREE_REF = 7×7 판 자유 선분 평균(GEN_VER 3 16~25판 시드 10개 실측 67.7~68.3). 7×7에서 D' ≈ D
+const SIZED=26, FREE_REF=68;
+const dOf=(st,s)=>st>=SIZED?100*s.u*s.free/FREE_REF+10*(s.k-1):s.D;
 function make(st,seed,maxK=4){
   const rnd=rng(seed*7919+st*104729+1),[lo,hi]=band(st),t0=Date.now();let best=null,bd=Infinity;
   for(let i=0;i<MAKE_TRIES&&bd>0;i++){
-    const P=candidate(st,rnd,maxK),s=score(P),d=s.D<lo?lo-s.D:s.D>hi?s.D-hi:0;
+    const P=candidate(st,rnd,maxK),s=score(P),x=dOf(st,s),d=x<lo?lo-x:x>hi?x-hi:0;
     if(d<bd){bd=d;best=P;P.score=s;P.cand=i+1}
   }
   best.ms=Date.now()-t0;return best;
@@ -387,7 +423,7 @@ function deadCells(n,pens,fence){
 // k: 한 칸의 후보 우리 k개 이하에서 공통 선분을 확정하는 전파기 C로 풀리는 최소 k(A = 1, 8까지 안 풀리면 9). D = 100u + 10(k-1)
 function score(P){
   const{g,N,cell,fix}=P,n=cell.length,E=g.E.length,raw=pensOf(g,N,cell,fix);
-  if(!raw)return{u:1,k:9,D:180};
+  if(!raw)return{u:1,k:9,D:180,free:E};
   const pens=raw.map(q=>{const inS=new Set(q.cells),bnd=[];for(const c of q.cells)for(const[nb,e]of g.adj[c])if(!inS.has(nb))bnd.push(e);return{inner:q.inner.map(x=>x[0]),bnd}});
   const byCell=[...Array(n)].map(()=>[]);raw.forEach((q,i)=>q.cells.forEach(c=>byCell[c].push(i)));
   const st=Int8Array.from(fix);
@@ -410,10 +446,10 @@ function score(P){
   const u=free?run(1)/free:0;let k=1;
   while(unk()&&k<9)run(++k);
   if(unk())k=9;
-  return{u,k,D:100*u+10*(k-1)};
+  return{u,k,D:100*u+10*(k-1),free};
 }
 
-return { GEN_VER, MAXK, rng, ladder, band, GEO, geom, judge, solve, fencesOf, shuffle, partition, GEN_NODES, MAKE_TRIES, make, candidate, pensOf, deadCells, score };
+return { GEN_VER, SAME_AS_PREV_MAX, fenKept, MAXK, rng, ladder, isRest, band, GEO, geom, judge, solve, fencesOf, shuffle, partition, GEN_NODES, MAKE_TRIES, SIZED, dOf, make, candidate, pensOf, deadCells, score };
 })();
 __m.core = (() => {
 // 저장·소리·라우터. design/app/src/core.js에서 필요한 것만 남겼다
@@ -475,6 +511,34 @@ const solvedOn = (rec, day) => !!rec.daily[day];
 
 return { DAILY_ST, dayNum, dailyMake, dayLabel, solvedOn };
 })();
+__m.lap = (() => {
+// 타임 랩: 같은 날 모두에게 같은 5판(크기별). 시드는 로컬 날짜에서만 나온다(서버 없음)
+const { ladder, make, MAXK, isRest } = __m.gen;
+const { dayLabel } = __m.daily;
+const TIERS = [5, 6, 7, 8];
+const LAP_N = 5;
+// 그 크기(정사각)가 사다리에 처음 나오는 판. 이 판을 풀면(frontier가 넘어서면) 열린다(도감과 같은 규칙)
+const firstSt = tier => { for (let s = 1; s <= 80; s++) { const L = ladder(s); if (L.R === tier && L.C === tier) return s; } return null; };
+// 크기 대표 판: 처음 나온 판 + 3, 쉬어 가는 판이면 그다음 판(쉬어 가는 판의 낮은 띠를 피한다). 사다리가 바뀌면 따라 바뀐다
+const repSt = tier => { const s = firstSt(tier) + 3; return isRest(s) ? s + 1 : s; };
+const LAP_ST = Object.fromEntries(TIERS.map(t => [t, repSt(t)]));
+const SHARE_URL = 'https://jennagil.github.io/fence/';
+const lapSeed = (day, tier, i) => day * 10 + tier + i * 1000003;
+const lapMake = (day, tier, i) => make(LAP_ST[tier], lapSeed(day, tier, i), MAXK);
+const fmt = ms => { const s = Math.round(ms / 1000); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
+const lapText = (day, tier, times) => `울타리 치기 · 타임 랩 ${tier}×${tier} · ${dayLabel(day)} · ${fmt(times.reduce((a, b) => a + b, 0))}\n판별 ${times.map(fmt).join(' ')}\n${SHARE_URL}`;
+const dailyText = (day, ms) => `울타리 치기 · 오늘의 판 ${dayLabel(day)} · ${fmt(ms)}\n${SHARE_URL}`;
+// 완주 기록. 반환: 최고 기록을 넘었는가(첫 완주는 넘을 기록이 없어 false)
+function record(lap, tier, day, total) {
+  const o = lap[tier] || (lap[tier] = { best: null, bestDay: null, today: null });
+  const beat = o.best != null && total < o.best;
+  if (o.best == null || total < o.best) { o.best = total; o.bestDay = String(day); }
+  if (!o.today || o.today.day !== day || total < o.today.ms) o.today = { day, ms: total };
+  return beat;
+}
+
+return { TIERS, LAP_N, firstSt, LAP_ST, SHARE_URL, lapSeed, lapMake, fmt, lapText, dailyText, record };
+})();
 __m.book = (() => {
 // 도감: 판에서 만난 규칙 요소. 각 요소가 처음 나오는 판 번호를 사다리에서 계산하고,
 // 그 판을 풀면(현재 판 = 다음에 풀 판이 그 번호를 넘으면) 열린다(M0-9). 푼 판에서 결정적으로 나오므로 따로 저장하지 않는다
@@ -494,7 +558,8 @@ function elements(nAnimals) {
     { g: '동물', items: [...Array(nAnimals).keys()].map(i => ({ t: 'animal', i, at: firstAt(L => Math.min(L.K, MAXK) > i) })) },
     { g: '단서', items: [{ t: 'peg', label: '말뚝', at: firstAt(L => L.peg) }, { t: 'gate', label: '길', at: firstAt(L => L.gate) }] },
     { g: '우리 크기', items: distinct(L => L.N).map(o => ({ t: 'pen', n: o.v, label: o.v + '마리', at: o.at })) },
-    { g: '판 크기', items: distinct(L => L.R).map(o => ({ t: 'size', n: o.v, label: o.v + '×' + o.v, at: o.at })) },
+    // 가로×세로(7×8은 세로가 긴 판)
+    { g: '판 크기', items: distinct(L => L.C + '×' + L.R).map(o => { const [c, r] = o.v.split('×').map(Number); return { t: 'size', c, r, label: o.v, at: o.at }; }) },
   ];
 }
 const isOpen = (it, frontier) => it.at != null && it.at < frontier;
@@ -509,9 +574,13 @@ function icon(it) {
     let d = ''; for (let k = 0; k < it.n; k++) { const a = Math.PI * 2 * k / it.n - Math.PI / 2, r = it.n > 1 ? 8 : 0; d += `<circle cx="${24 + r * Math.cos(a)}" cy="${24 + r * Math.sin(a)}" r="4.5" fill="${C.dark}"/>`; }
     return s(`<rect x="7" y="7" width="34" height="34" rx="4" fill="${C.grass}" stroke="${C.fence}" stroke-width="4"/>${d}`);
   }
-  let d = ''; const w = 34 / it.n;
-  for (let k = 1; k < it.n; k++) d += `<path d="M${7 + k * w} 7V41M7 ${7 + k * w}H41" stroke="${C.dark}" stroke-opacity=".35" stroke-width="1"/>`;
-  return s(`<rect x="7" y="7" width="34" height="34" rx="3" fill="${C.grass}"/>${d}<rect x="7" y="7" width="34" height="34" rx="3" fill="none" stroke="${C.fence}" stroke-width="3"/>`);
+  // 칸은 정사각, 긴 변이 34
+  const w = 34 / Math.max(it.c, it.r), W = w * it.c, Hh = w * it.r, x0 = 24 - W / 2, y0 = 24 - Hh / 2;
+  let d = '';
+  for (let k = 1; k < it.c; k++) d += `<path d="M${x0 + k * w} ${y0}V${y0 + Hh}" stroke="${C.dark}" stroke-opacity=".35" stroke-width="1"/>`;
+  for (let k = 1; k < it.r; k++) d += `<path d="M${x0} ${y0 + k * w}H${x0 + W}" stroke="${C.dark}" stroke-opacity=".35" stroke-width="1"/>`;
+  const box = `x="${x0}" y="${y0}" width="${W}" height="${Hh}" rx="3"`;
+  return s(`<rect ${box} fill="${C.grass}"/>${d}<rect ${box} fill="none" stroke="${C.fence}" stroke-width="3"/>`);
 }
 
 function render(el, nAnimals, frontier) {
@@ -543,7 +612,7 @@ const OUT = .8;
 // cb: onPlay(ms) 놀이 시간 증가, onEdit(fenList, boardMs), onWin(boardMs), onDemoEnd()
 function createBoard(B, cb) {
   const cv = B.querySelector('canvas'), cx = cv.getContext('2d'), hand = B.querySelector('.hand');
-  let P, g, fen, dead, done = [], animals = [], solved = 0, solveT = 0, boardMs = 0, lastAct = 0, drag = null, S = 0, pad = 0, cs = 0, raf = 0, demo = null, timers = [];
+  let P, g, fen, dead, done = [], animals = [], solved = 0, solveT = 0, boardMs = 0, lastAct = 0, drag = null, S = 0, H = 0, pad = 0, cs = 0, raf = 0, demo = null, timers = [];
   const eff = e => P.fix[e] === 1 || (P.fix[e] !== 0 && fen[e] === 1);
   const vx = v => pad + v % (P.C + 1) * cs, vy = v => pad + (v / (P.C + 1) | 0) * cs;
   const list = () => { const o = []; fen.forEach((f, e) => { if (f) o.push(e); }); return o; };
@@ -551,6 +620,7 @@ function createBoard(B, cb) {
   function open(p, fenList, ms, withDemo) {
     timers.forEach(clearTimeout); timers = [];
     P = p; g = P.g; P.pens = pensOf(g, P.N, P.cell, P.fix); fen = new Int8Array(g.E.length);
+    shape();
     for (const e of fenList || []) if (P.fix[e] === -1) fen[e] = 1;
     solved = 0; boardMs = ms || 0; lastAct = 0; drag = null; update();
     animals.forEach(a => a.el.remove()); animals = [];
@@ -572,8 +642,14 @@ function createBoard(B, cb) {
   }
   function stopDemo() { if (!demo) return; demo = null; hand.hidden = true; cb.onDemoEnd(); }
 
+  // 세로가 긴 판(7×8)은 칸을 정사각으로 두고 폭을 줄여, 높이가 정사각 판(폭 100%)과 같게 한다 → 화면 배치가 판 모양과 무관
+  // 판 높이 = 폭 × (2·0.045 + 0.91·R/C) (fit의 pad·cs와 같은 식)
+  function shape() {
+    const h = .09 + .91 * P.R / P.C;
+    Object.assign(B.style, P.R === P.C ? { width: '', aspectRatio: '', margin: '' } : { width: Math.min(1, 1 / h) * 100 + '%', aspectRatio: String(1 / h), margin: '0 auto' });
+  }
   function fit() {
-    const r = B.getBoundingClientRect(), d = window.devicePixelRatio || 1; S = r.width; cv.width = S * d; cv.height = S * d; cx.setTransform(d, 0, 0, d, 0, 0);
+    const r = B.getBoundingClientRect(), d = window.devicePixelRatio || 1; S = r.width; H = r.height; cv.width = S * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0);
     pad = S * .045; cs = (S - 2 * pad) / P.C;
     animals.forEach(a => { const c = a.i % P.C, r = a.i / P.C | 0; Object.assign(a.el.style, { left: pad + (c + .5) * cs + 'px', top: pad + (r + .5) * cs + 'px', width: cs * .8 + 'px' }); });
   }
@@ -690,7 +766,7 @@ function createBoard(B, cb) {
     hand.style.opacity = name === 'lift' && ph === 7 ? Math.max(0, 1 - k * 2) : 1;
   }
   function loop(t) {
-    cx.clearRect(0, 0, S, S);
+    cx.clearRect(0, 0, S, H);
     for (let i = 0; i < P.R * P.C; i++) { const c = i % P.C, r = i / P.C | 0; cx.fillStyle = GRASS[(c + r) % 2]; cx.fillRect(pad + c * cs, pad + r * cs, cs, cs); }
     cx.globalAlpha = .35; done.forEach(R => { cx.fillStyle = PAL[R.k % PAL.length]; R.reg.forEach(i => cx.fillRect(pad + i % P.C * cs, pad + (i / P.C | 0) * cs, cs, cs)); });
     // 갈 곳 없는 칸: 다 지은 우리의 단색 칠과 헷갈리지 않게 연한 붉은 바탕 + 사선 빗금
@@ -733,7 +809,8 @@ return { createBoard };
 })();
 __m.move = (() => {
 // 기록 옮기기: 기록(rec)+진행(state)을 한 줄 글로 만들고, 다른 기기의 글을 검증해 합친다. 네트워크 없음
-const { GEN_VER } = __m.gen;
+const { fenKept } = __m.gen;
+const { TIERS } = __m.lap;
 const PRE = 'FARM1:';
 
 // FNV-1a 32비트. 손상(잘림·오타) 감지용이지 위조 방지용이 아니다
@@ -751,6 +828,10 @@ const num = x => typeof x === 'number' && isFinite(x) && x >= 0;
 const ms = x => x === null || num(x);
 const stage = k => /^[1-9]\d{0,5}$/.test(k);
 const day = k => /^\d{8}$/.test(k);
+const tier = k => TIERS.includes(+k) && String(+k) === k;
+// 타임 랩 기록 하나: { best, bestDay, today: { day, ms } | null }
+const lapOf = o => isObj(o) && ms(o.best) && (o.bestDay === null || day(String(o.bestDay))) && (o.today === null || isObj(o.today) && day(String(o.today.day)) && num(o.today.ms))
+  ? { best: o.best, bestDay: o.bestDay === null ? null : String(o.bestDay), today: o.today && { day: +o.today.day, ms: o.today.ms } } : null;
 
 // 잘못된 글이면 null. 맞으면 쓸 수 있는 필드만 골라 낸 { rec, L, demo }
 // 마지막 FARM1:부터 읽는다(앞에 붙은 설명·거절된 옛 글은 무시). 그 뒤 첫 공백까지, 안 되면 메신저 줄바꿈을 지운 나머지 전체
@@ -766,16 +847,19 @@ function decode(text) {
   const best = {}, daily = {};
   for (const k in r.best) { const b = r.best[k]; if (!stage(k) || !isObj(b) || !ms(b.ms)) return null; best[k] = { ms: b.ms, v: b.v | 0 }; }
   for (const k in r.daily) { const b = r.daily[k]; if (!day(k) || !isObj(b) || !num(b.ms)) return null; daily[k] = { ms: b.ms, v: b.v | 0 }; }
+  const lap = {};
+  if (r.lap !== undefined) { if (!isObj(r.lap)) return null; for (const k in r.lap) { const o = lapOf(r.lap[k]); if (!tier(k) || !o) return null; lap[k] = o; } }
   const ses = isObj(r.ses) ? r.ses : {};
   const L = isObj(s.L) && num(s.L.st) && s.L.st >= 1 && Array.isArray(s.L.fen) && s.L.fen.every(e => Number.isInteger(e) && e >= 0)
-    ? { st: s.L.st | 0, fen: s.v === GEN_VER ? s.L.fen.slice() : [], ms: num(s.L.ms) ? s.L.ms : 0 } : null;
+    ? { st: s.L.st | 0, fen: fenKept(s.v, s.L.st | 0) ? s.L.fen.slice() : [], ms: num(s.L.ms) ? s.L.ms : 0 } : null;
   return {
-    rec: { best, daily, play: num(r.play) ? r.play : 0, solves: num(r.solves) ? r.solves | 0 : 0, solveMs: num(r.solveMs) ? r.solveMs : 0, sesN: num(ses.n) ? ses.n | 0 : 0 },
+    rec: { best, daily, play: num(r.play) ? r.play : 0, solves: num(r.solves) ? r.solves | 0 : 0, solveMs: num(r.solveMs) ? r.solveMs : 0, sesN: num(ses.n) ? ses.n | 0 : 0, lap, lapN: num(r.lapN) ? r.lapN | 0 : 0 },
     L, demo: s.demo ? 1 : 0,
   };
 }
 
 // 판별 최고 기록은 더 좋은 쪽(시간 없는 ✓보다 시간 있는 기록), 진행은 더 앞선 쪽, 수는 더 큰 쪽, 오늘의 판은 합집합
+// 타임 랩: best는 더 빠른 쪽(그 날짜와 함께), today는 더 늦은 날, 같은 날이면 더 빠른 쪽
 const better = (a, b) => !a ? b : !b ? a : a.ms == null ? b : b.ms == null ? a : b.ms < a.ms ? b : a;
 function merge(rec, state, inc) {
   for (const k in inc.rec.best) rec.best[k] = better(rec.best[k], inc.rec.best[k]);
@@ -783,6 +867,12 @@ function merge(rec, state, inc) {
   rec.play = Math.max(rec.play, inc.rec.play);
   if (inc.rec.solves > rec.solves) { rec.solves = inc.rec.solves; rec.solveMs = inc.rec.solveMs; }
   rec.ses.n = Math.max(rec.ses.n, inc.rec.sesN);
+  for (const k in inc.rec.lap) {
+    const L = rec.lap || (rec.lap = {}), a = L[k] || (L[k] = { best: null, bestDay: null, today: null }), b = inc.rec.lap[k];
+    if (b.best != null && (a.best == null || b.best < a.best)) { a.best = b.best; a.bestDay = b.bestDay; }
+    if (b.today && (!a.today || b.today.day > a.today.day || b.today.day === a.today.day && b.today.ms < a.today.ms)) a.today = { ...b.today };
+  }
+  if (inc.rec.lapN > (rec.lapN | 0)) rec.lapN = inc.rec.lapN;
   if (inc.L && inc.L.st > state.L.st) state.L = inc.L;
   const frontier = Object.keys(rec.best).reduce((m, s) => Math.max(m, +s), 0) + 1;
   if (rec.best[state.L.st]) state.L = { st: frontier, fen: [], ms: 0 };
@@ -792,19 +882,20 @@ function merge(rec, state, inc) {
 return { encode, decode, merge };
 })();
 __m.main = (() => {
-const { GEN_VER, MAXK, make } = __m.gen;
+const { GEN_VER, MAXK, make, fenKept } = __m.gen;
 const { load, save, drop, raw, router, soundOn, setSound, audio, tone } = __m.core;
-const { dayNum, dailyMake, dayLabel, solvedOn } = __m.daily;
+const { dayNum, dailyMake, dayLabel, solvedOn, DAILY_ST } = __m.daily;
 const book = __m.book;
 const { createBoard } = __m.board;
 const move = __m.move;
+const lap = __m.lap;
 
 const $ = id => document.getElementById(id);
 const NEW_SESSION = 30 * 60e3;   // 이만큼 넘게 안 보다가 돌아오면 새 세션
 // 동물 그림은 클래스 하나로(데이터 URL을 요소마다 되풀이하지 않게). background 축약형 금지: body 안 style이 덮는다
 document.head.insertAdjacentHTML('beforeend', '<style>' + SPR.map((u, i) => `.k${i}{background-image:url(${u})}`).join('') + '</style>');
 
-const blankRec = () => ({ v: GEN_VER, best: {}, play: 0, solves: 0, solveMs: 0, ses: { n: 0, day: 0, today: 0 }, daily: {}, imp: 1 });
+const blankRec = () => ({ v: GEN_VER, best: {}, play: 0, solves: 0, solveMs: 0, ses: { n: 0, day: 0, today: 0 }, daily: {}, imp: 1, lap: {}, lapN: 0 });
 // 첫 실행: 토이(h3) 기록이 있으면 판 번호와 놀이 시간을 가져온다. 토이에는 판별 시간이 없어 푼 판은 시간 없이 표시
 function initRec() {
   const r = load('rec', null); if (r) return r;
@@ -814,11 +905,12 @@ function initRec() {
   return n;
 }
 let rec = initRec();
+if (!rec.lap) { rec.lap = {}; rec.lapN = 0; }
 const frontier = () => Object.keys(rec.best).reduce((m, s) => Math.max(m, +s), 0) + 1;
 // state: 판 슬롯마다 그어 둔 선분과 그 판에 쓴 시간. L 사다리 진행 판, D 오늘의 판, R 판 고르기로 다시 푸는 지난 판(L을 덮지 않게 따로)
-// demo: 시범을 이미 봤는지. v: 선분을 그은 판의 GEN_VER(다르면 같은 번호라도 다른 판이라 선분을 버린다). cur: 마지막으로 보던 판 슬롯('L'|'D'|'R')
+// demo: 시범을 이미 봤는지. v: 선분을 그은 판의 GEN_VER(다르면 같은 번호라도 다른 판일 수 있어 선분을 버린다. 바로 앞 버전과 같은 판(gen.fenKept)은 살린다). cur: 마지막으로 보던 판 슬롯('L'|'D'|'R')
 let state = load('state', null) || { L: { st: frontier(), fen: [], ms: 0 }, demo: frontier() > 1 ? 1 : 0 };
-if (state.v !== GEN_VER) { for (const k of ['L', 'D', 'R']) if (state[k]) state[k].fen = []; state.v = GEN_VER; }
+if (state.v !== GEN_VER) { for (const k of ['L', 'D', 'R']) if (state[k] && !fenKept(state.v, k === 'D' ? DAILY_ST : state[k].st)) state[k].fen = []; state.v = GEN_VER; }
 // 옛 저장에서는 판 고르기로 연 지난 판이 L에 들어 있을 수 있다 → 사다리 진행 판으로 되돌린다
 if (rec.best[state.L.st]) state.L = { st: frontier(), fen: [], ms: 0 };
 function session() {
@@ -838,8 +930,9 @@ const fmtLong = ms => { const s = Math.round(ms / 1000), h = s / 3600 | 0, m = (
 let cur = null;   // 지금(또는 메뉴를 열기 직전) 판: { mode: 'L'|'R'|'D', st | day }
 const board = createBoard($('b'), {
   onPlay(ms) { rec.play += ms; },
-  onEdit(fen, ms) { const s = state[cur.mode]; s.fen = fen; s.ms = ms; save('state', state); save('rec', rec); },
+  onEdit(fen, ms) { if (cur.mode === 'T') return; const s = state[cur.mode]; s.fen = fen; s.ms = ms; save('state', state); save('rec', rec); },
   onWin(ms) {
+    if (cur.mode === 'T') return lapWin();
     ms = Math.round(ms);
     if (cur.mode === 'D') { rec.daily[cur.day] = { ms, v: GEN_VER }; state.D = null; }
     else {
@@ -887,6 +980,8 @@ function openD() {
 // 앱 시작: 마지막으로 보던 판. 오늘의 판은 날짜가 같고 선분을 그어 두었을 때만(열어만 본 오늘의 판으로는 돌아가지 않는다). 그 밖에는 사다리 판
 // cur가 없는 옛 저장은 오늘의 판에 선분이 있으면 오늘의 판
 function resume() {
+  // 타임 랩 중(또는 완주 화면)에서 다시 열면 랩은 취소되고 메뉴
+  if (state.cur === 'T') { openL(); return toDepth(1, () => route.go('menu')); }
   const d = dayNum(), D = state.D && state.D.day === d && state.D.fen.length && !solvedOn(rec, d);
   if (state.cur === 'R' && state.R) { openR(state.R.st); boardEntry('R'); }
   else if (D && (state.cur === 'D' || !state.cur)) { openD(); boardEntry('D'); }
@@ -896,11 +991,13 @@ function resume() {
 function paintDots() { const on = Object.keys(rec.best).length >= 2 && !solvedOn(rec, dayNum()); document.querySelectorAll('.dot').forEach(d => d.hidden = !on); }
 
 const route = router({
-  board: { enter() { paintDots(); board.start(); }, leave() { board.stop(); } },
+  board: { enter() { paintDots(); board.start(); }, leave() { board.stop(); cancelLap(); } },
   menu: { enter() { paintDots(); $('cont').textContent = `이어 하기 · ${state.L.st}판`; } },
   daily: {
-    enter() { const d = dayNum(), r = rec.daily[d]; $('dy').innerHTML = `<p class="big">${dayLabel(d)}</p><p>${fmt(r.ms)}</p><p class="mut">내일 새 판이 열려요</p>`; },
+    enter() { const d = dayNum(), r = rec.daily[d]; $('dy').innerHTML = `<p class="big">${dayLabel(d)}</p><p>${fmt(r.ms)}</p><p class="mut">내일 새 판이 열려요</p>`; shareReset($('dyShr')); $('dyShr').dataset.text = lap.dailyText(d, r.ms); },
   },
+  lap: { enter: paintLap },
+  lapdone: { enter: paintLapDone },
   pick: { enter: paintPick },
   book: { enter() { book.render($('bk'), SPR.length, frontier()); } },
   set: { enter: paintSet },
@@ -922,7 +1019,7 @@ function paintPick() {
 
 function paintSet() {
   const solved = Object.keys(rec.best).length, avg = rec.solves ? rec.solveMs / rec.solves : null;
-  $('stats').innerHTML = `<dt>놀이 시간</dt><dd>${fmtLong(rec.play)}</dd><dt>푼 판</dt><dd>${solved}</dd>` +
+  $('stats').innerHTML = `<dt>놀이 시간</dt><dd>${fmtLong(rec.play)}</dd><dt>푼 판</dt><dd>${solved + rec.lapN}</dd>` +
     `<dt>판당 평균</dt><dd>${avg == null ? '-' : fmtLong(avg)}</dd><dt>세션</dt><dd>오늘 ${rec.ses.day === dayNum() ? rec.ses.today : 0} · 전체 ${rec.ses.n}</dd>`;
   $('snd').setAttribute('aria-pressed', soundOn()); $('snd').textContent = soundOn() ? '켬' : '끔';
   $('ok').hidden = true; $('hold').hidden = false;
@@ -972,6 +1069,78 @@ $('ps').onclick = () => {
   msg('psMsg', `합쳤어요. 푼 판 ${before} → ${Object.keys(rec.best).length} · 이어 하기 ${state.L.st}판`);
 };
 
+// 타임 랩: 5판 연속, 판마다 연 때부터 푼 때까지의 벽시계 시간(초 단위로 반올림해 판별 합 = 총시간).
+// 랩 판·완주 화면은 s-lap과 같은 history 칸(d 2)에 머문다 → 뒤로 가기·☰는 랩 취소 후 메뉴. 진행은 저장하지 않는다
+let run = null, done = null;
+const LAP_NEXT = 1500;   // 칠하기 연출(0.9초 이하) + 0.6초 뒤 다음 판
+function paintLap() {
+  const f = frontier(), d = dayNum();
+  $('lp').innerHTML = lap.TIERS.map(t => {
+    const at = lap.firstSt(t), o = rec.lap[t], name = `<b>${t}×${t}</b>`;
+    if (!(at < f)) return `<div class="lc lock">${name}<span>${at - f + 1}판 더</span></div>`;
+    const today = o && o.today && o.today.day === d ? `<br>오늘 ${lap.fmt(o.today.ms)}` : '';
+    return `<button class="lc" data-tier="${t}">${name}<span>내 최고 ${o && o.best != null ? lap.fmt(o.best) : '—'}${today}</span></button>`;
+  }).join('');
+}
+$('lp').addEventListener('click', e => { const b = e.target.closest('button[data-tier]'); if (b) startLap(+b.dataset.tier); });
+function startLap(tier) {
+  const day = dayNum(), Ps = [];
+  for (let i = 0; i < lap.LAP_N; i++) Ps.push(lap.lapMake(day, tier, i));   // CPU 4×에서도 5판 합 1.5초 미만이라 한꺼번에
+  state.cur = 'T'; save('state', state);
+  cur = { mode: 'T' };
+  route.go('board');
+  run = { tier, day, Ps, i: 0, times: [], t0: 0, tick: 0, adv: 0, hd: '' };
+  openLapBoard();
+}
+const lapSum = () => run.times.reduce((a, b) => a + b, 0);
+function lapHd() {
+  const now = run.times.length > run.i ? lapSum() : lapSum() + performance.now() - run.t0, s = now / 1000 | 0;
+  const t = `타임 랩 ${run.tier}×${run.tier} · ${run.i + 1}/${lap.LAP_N} · ${s / 60 | 0}:${String(s % 60).padStart(2, '0')}`;
+  if (t !== run.hd) $('hd').textContent = run.hd = t;
+}
+function openLapBoard() {
+  show(run.Ps[run.i], { fen: [], ms: 0 }, false);
+  run.hd = ''; run.t0 = performance.now(); lapHd();
+  clearInterval(run.tick); run.tick = setInterval(lapHd, 250);
+}
+function lapWin() {
+  run.times.push(Math.max(1000, Math.round((performance.now() - run.t0) / 1000) * 1000));
+  rec.lapN++; save('rec', rec);
+  clearInterval(run.tick); run.hd = ''; lapHd();
+  $('re').hidden = true;
+  run.adv = setTimeout(() => { if (run.i < lap.LAP_N - 1) { run.i++; openLapBoard(); } else finishLap(); }, LAP_NEXT);
+}
+function finishLap() {
+  const { tier, day, times } = run, total = times.reduce((a, b) => a + b, 0);
+  run = null;
+  const beat = lap.record(rec.lap, tier, day, total); save('rec', rec);
+  done = { tier, day, times, total, beat };
+  route.go('lapdone');
+}
+function cancelLap() { if (!run) return; clearTimeout(run.adv); clearInterval(run.tick); run = null; }
+function paintLapDone() {
+  const { tier, day, times, total, beat } = done;
+  $('ldH').textContent = `타임 랩 ${tier}×${tier}`;
+  $('ld').innerHTML = `<p class="big">${dayLabel(day)}</p><p class="tot">${lap.fmt(total)}</p>` +
+    (beat ? '<p class="nb">내 최고 갱신</p>' : `<p class="mut">내 최고 ${lap.fmt(rec.lap[tier].best)}</p>`) +
+    `<ol class="splits">${times.map((m, i) => `<li><span>${i + 1}판</span><b>${lap.fmt(m)}</b></li>`).join('')}</ol>`;
+  shareReset($('ldShr')); $('ldShr').dataset.text = lap.lapText(day, tier, times);
+}
+$('ldRe').onclick = () => startLap(done.tier);
+
+// 기록 공유: 공유 시트 → 안 되면 클립보드 → 그것도 안 되면 전체 선택된 글 상자. 사용자가 공유 시트를 닫은 것(AbortError)은 실패가 아니다
+function shareReset(box) { const m = box.querySelector('.msg'); m.textContent = ''; m.hidden = true; box.querySelector('textarea').hidden = true; }
+function share(box) {
+  const text = box.dataset.text, m = box.querySelector('.msg'), tx = box.querySelector('textarea');
+  const say = t => { m.textContent = t; m.hidden = !t; };
+  const manual = () => { tx.value = text; tx.hidden = false; tx.focus(); tx.select(); say('자동 복사가 안 돼요. 아래 글을 길게 눌러 모두 복사하세요.'); };
+  const clip = () => navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text).then(() => say('복사했어요. 메신저에 붙여 넣으세요.'), manual) : manual();
+  shareReset(box);
+  if (!navigator.share) return clip();
+  navigator.share({ text }).then(() => {}, e => { if (!e || e.name !== 'AbortError') clip(); });
+}
+document.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => share(b.closest('.shr'))));
+
 // 뒤로 가기. 판(L 사다리 진행 판)이 루트(d 0)이고, 판에서의 뒤로 가기는 브라우저/OS에 맡긴다.
 // 다른 화면은 들어갈 때 한 칸씩 쌓는다. d 1은 언제나 메뉴, 오늘의 판·다시 푸는 판은 메뉴 바로 위(d 2).
 // popstate는 도착한 칸의 화면을 그린다(상대 이동이 아니라서 연타해도 두 칸씩 빠지지 않는다). 앱 안 ◀도 history.back()
@@ -1015,7 +1184,7 @@ if (H) addEventListener('popstate', e => {
   land(h);
 });
 
-$('mn').onclick = () => { push('menu'); route.go('menu'); };
+$('mn').onclick = () => { if (cur.mode === 'T') return toDepth(1, () => route.go('menu')); push('menu'); route.go('menu'); };
 $('re').onclick = () => board.clear();
 $('nx').onclick = () => toDepth(0, openL);
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
