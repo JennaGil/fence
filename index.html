@@ -102,6 +102,24 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0
 .splits li{display:flex;justify-content:space-between;padding:8px 4px;border-top:1px solid #3A2A1C14;font-size:16px}
 .shr{margin-top:12px}
 .shr textarea{margin:12px 0 0;min-height:84px}
+.sk{text-align:center;font-size:18px;font-weight:700;margin:4px 0 12px}
+.sk b{color:#E8563F;font-size:24px}
+.sk span{display:block;font-size:13px;font-weight:600;opacity:.6;margin-top:2px}
+/* 달력: 360 폭에서도 칸 44px 이상(카드 좌우 여백을 줄이고 칸 사이 간격 없이) */
+.calc{margin-top:12px;padding:10px 8px}
+.calc .row{padding:0 4px 6px}
+.calc .row b{font-size:17px}
+#cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+#cal>b{font-size:12px;font-weight:600;opacity:.55;text-align:center;padding:2px 0 4px}
+.cd{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:14px;font-weight:600;color:#3A2A1C;border-radius:12px;box-sizing:border-box}
+button.cd{padding:0;background-color:transparent;min-width:0}
+.cd i{width:10px;height:10px;border-radius:50%;box-sizing:border-box;border:2px solid #E8563F}
+.cd.on i{background-color:#E8563F}
+.cd.late i{background-image:linear-gradient(90deg,#E8563F 50%,transparent 50%)}
+.cd.miss i{border-color:#3A2A1C40}
+.cd.today{box-shadow:inset 0 0 0 2px #3A2A1C}
+.cd.fut{opacity:.3}
+#dy .wide{margin-top:8px}
 
 </style>
 </head>
@@ -126,8 +144,13 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0
 </section>
 <section id="s-daily" class="scr" hidden>
   <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>오늘의 판</h1><i></i></div>
+  <p id="sk" class="sk" hidden></p>
   <div id="dy" class="card"></div>
   <div class="card shr" id="dyShr"><button class="wide" data-share>기록 공유</button><p class="msg" hidden></p><textarea readonly hidden aria-label="공유할 기록"></textarea></div>
+  <div class="card calc">
+    <div class="row"><button id="calP" class="ic" aria-label="이전 달"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b id="calM"></b><button id="calN" class="ic" aria-label="다음 달"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    <div id="cal"></div>
+  </div>
 </section>
 <section id="s-lap" class="scr" hidden>
   <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>타임 랩</h1><i></i></div>
@@ -510,8 +533,18 @@ const dayNum = (d = new Date()) => d.getFullYear() * 10000 + (d.getMonth() + 1) 
 const dailyMake = day => make(DAILY_ST, day, MAXK);
 const dayLabel = day => `${(day / 100 | 0) % 100}월 ${day % 100}일`;
 const solvedOn = (rec, day) => !!rec.daily[day];
+const addDays = (day, n) => dayNum(new Date(day / 10000 | 0, (day / 100 | 0) % 100 - 1, day % 100 + n));
+// 연속 일수는 그날에 푼 날(late 아님)만 센다. 지난 날 판을 나중에 푼 기록은 { ms, v, late: true }
+const onTime = (rec, day) => { const r = rec.daily[day]; return !!r && !r.late; };
+function runEnding(rec, day) { let n = 0; while (onTime(rec, day)) { n++; day = addDays(day, -1); } return n; }
+// 지금 연속: 오늘을 풀었으면 오늘부터, 아직이면 어제부터 뒤로
+const streakOf = (rec, today) => runEnding(rec, onTime(rec, today) ? today : addDays(today, -1));
+function streakInit(rec) {
+  const days = Object.keys(rec.daily).filter(k => onTime(rec, k)).map(Number), last = days.length ? Math.max(...days) : 0;
+  return { cur: last ? runEnding(rec, last) : 0, best: days.reduce((b, d) => Math.max(b, runEnding(rec, d)), 0), last };
+}
 
-return { DAILY_ST, dayNum, dailyMake, dayLabel, solvedOn };
+return { DAILY_ST, dayNum, dailyMake, dayLabel, solvedOn, addDays, runEnding, streakOf, streakInit };
 })();
 __m.lap = (() => {
 // 타임 랩: 같은 날 모두에게 같은 5판(크기별). 시드는 로컬 날짜에서만 나온다(서버 없음)
@@ -529,7 +562,7 @@ const lapSeed = (day, tier, i) => day * 10 + tier + i * 1000003;
 const lapMake = (day, tier, i) => make(LAP_ST[tier], lapSeed(day, tier, i), MAXK);
 const fmt = ms => { const s = Math.round(ms / 1000); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
 const lapText = (day, tier, times) => `울타리 치기 · 타임 랩 ${tier}×${tier} · ${dayLabel(day)} · ${fmt(times.reduce((a, b) => a + b, 0))}\n판별 ${times.map(fmt).join(' ')}\n${SHARE_URL}`;
-const dailyText = (day, ms) => `울타리 치기 · 오늘의 판 ${dayLabel(day)} · ${fmt(ms)}\n${SHARE_URL}`;
+const dailyText = (day, ms, streak = 1) => `울타리 치기 · 오늘의 판 ${dayLabel(day)} · ${fmt(ms)}\n${streak > 1 ? `연속 ${streak}일\n` : ''}${SHARE_URL}`;
 // 완주 기록. 반환: 최고 기록을 넘었는가(첫 완주는 넘을 기록이 없어 false)
 function record(lap, tier, day, total) {
   const o = lap[tier] || (lap[tier] = { best: null, bestDay: null, today: null });
@@ -848,24 +881,27 @@ function decode(text) {
   if (!isObj(r) || !isObj(r.best) || !isObj(r.daily) || !isObj(s)) return null;
   const best = {}, daily = {};
   for (const k in r.best) { const b = r.best[k]; if (!stage(k) || !isObj(b) || !ms(b.ms)) return null; best[k] = { ms: b.ms, v: b.v | 0 }; }
-  for (const k in r.daily) { const b = r.daily[k]; if (!day(k) || !isObj(b) || !num(b.ms)) return null; daily[k] = { ms: b.ms, v: b.v | 0 }; }
+  for (const k in r.daily) { const b = r.daily[k]; if (!day(k) || !isObj(b) || !num(b.ms)) return null; daily[k] = { ms: b.ms, v: b.v | 0, ...(b.late ? { late: true } : {}) }; }
   const lap = {};
   if (r.lap !== undefined) { if (!isObj(r.lap)) return null; for (const k in r.lap) { const o = lapOf(r.lap[k]); if (!tier(k) || !o) return null; lap[k] = o; } }
   const ses = isObj(r.ses) ? r.ses : {};
+  const sk = r.streak, streak = isObj(sk) && num(sk.cur) && num(sk.best) && (sk.last === 0 || day(String(sk.last))) ? { cur: sk.cur | 0, best: sk.best | 0, last: +sk.last } : null;
   const L = isObj(s.L) && num(s.L.st) && s.L.st >= 1 && Array.isArray(s.L.fen) && s.L.fen.every(e => Number.isInteger(e) && e >= 0)
     ? { st: s.L.st | 0, fen: fenKept(s.v, s.L.st | 0) ? s.L.fen.slice() : [], ms: num(s.L.ms) ? s.L.ms : 0 } : null;
   return {
-    rec: { best, daily, play: num(r.play) ? r.play : 0, solves: num(r.solves) ? r.solves | 0 : 0, solveMs: num(r.solveMs) ? r.solveMs : 0, sesN: num(ses.n) ? ses.n | 0 : 0, lap, lapN: num(r.lapN) ? r.lapN | 0 : 0 },
+    rec: { best, daily, play: num(r.play) ? r.play : 0, solves: num(r.solves) ? r.solves | 0 : 0, solveMs: num(r.solveMs) ? r.solveMs : 0, sesN: num(ses.n) ? ses.n | 0 : 0, lap, lapN: num(r.lapN) ? r.lapN | 0 : 0, streak },
     L, demo: s.demo ? 1 : 0,
   };
 }
 
-// 판별 최고 기록은 더 좋은 쪽(시간 없는 ✓보다 시간 있는 기록), 진행은 더 앞선 쪽, 수는 더 큰 쪽, 오늘의 판은 합집합
+// 판별 최고 기록은 더 좋은 쪽(시간 없는 ✓보다 시간 있는 기록), 진행은 더 앞선 쪽, 수는 더 큰 쪽, 오늘의 판은 합집합(같은 날이면 그날에 푼 쪽 → 빠른 쪽)
 // 타임 랩: best는 더 빠른 쪽(그 날짜와 함께), today는 더 늦은 날, 같은 날이면 더 빠른 쪽
 const better = (a, b) => !a ? b : !b ? a : a.ms == null ? b : b.ms == null ? a : b.ms < a.ms ? b : a;
+// 오늘의 판은 그날에 푼 기록(late 아님)을 먼저: 연속 일수가 기기를 옮겨도 줄지 않게
+const betterDay = (a, b) => a && b && !a.late !== !b.late ? (a.late ? b : a) : better(a, b);
 function merge(rec, state, inc) {
   for (const k in inc.rec.best) rec.best[k] = better(rec.best[k], inc.rec.best[k]);
-  for (const k in inc.rec.daily) rec.daily[k] = better(rec.daily[k], inc.rec.daily[k]);
+  for (const k in inc.rec.daily) rec.daily[k] = betterDay(rec.daily[k], inc.rec.daily[k]);
   rec.play = Math.max(rec.play, inc.rec.play);
   if (inc.rec.solves > rec.solves) { rec.solves = inc.rec.solves; rec.solveMs = inc.rec.solveMs; }
   rec.ses.n = Math.max(rec.ses.n, inc.rec.sesN);
@@ -875,6 +911,9 @@ function merge(rec, state, inc) {
     if (b.today && (!a.today || b.today.day > a.today.day || b.today.day === a.today.day && b.today.ms < a.today.ms)) a.today = { ...b.today };
   }
   if (inc.rec.lapN > (rec.lapN | 0)) rec.lapN = inc.rec.lapN;
+  // 연속: cur는 마지막으로 푼 날이 더 최근인 쪽, best는 큰 쪽
+  const a = rec.streak, b = inc.rec.streak;
+  if (b) rec.streak = !a ? { ...b } : { cur: b.last > a.last ? b.cur : b.last < a.last ? a.cur : Math.max(a.cur, b.cur), best: Math.max(a.best, b.best), last: Math.max(a.last, b.last) };
   if (inc.L && inc.L.st > state.L.st) state.L = inc.L;
   const frontier = Object.keys(rec.best).reduce((m, s) => Math.max(m, +s), 0) + 1;
   if (rec.best[state.L.st]) state.L = { st: frontier, fen: [], ms: 0 };
@@ -886,7 +925,7 @@ return { encode, decode, merge };
 __m.main = (() => {
 const { GEN_VER, MAXK, make, fenKept } = __m.gen;
 const { load, save, drop, raw, router, soundOn, setSound, audio, tone } = __m.core;
-const { dayNum, dailyMake, dayLabel, solvedOn, DAILY_ST } = __m.daily;
+const { dayNum, dailyMake, dayLabel, solvedOn, DAILY_ST, runEnding, streakOf, streakInit } = __m.daily;
 const book = __m.book;
 const { createBoard } = __m.board;
 const move = __m.move;
@@ -897,7 +936,7 @@ const NEW_SESSION = 30 * 60e3;   // 이만큼 넘게 안 보다가 돌아오면 
 // 동물 그림은 클래스 하나로(데이터 URL을 요소마다 되풀이하지 않게). background 축약형 금지: body 안 style이 덮는다
 document.head.insertAdjacentHTML('beforeend', '<style>' + SPR.map((u, i) => `.k${i}{background-image:url(${u})}`).join('') + '</style>');
 
-const blankRec = () => ({ v: GEN_VER, best: {}, play: 0, solves: 0, solveMs: 0, ses: { n: 0, day: 0, today: 0 }, daily: {}, imp: 1, lap: {}, lapN: 0 });
+const blankRec = () => ({ v: GEN_VER, best: {}, play: 0, solves: 0, solveMs: 0, ses: { n: 0, day: 0, today: 0 }, daily: {}, imp: 1, lap: {}, lapN: 0, streak: { cur: 0, best: 0, last: 0 } });
 // 첫 실행: 토이(h3) 기록이 있으면 판 번호와 놀이 시간을 가져온다. 토이에는 판별 시간이 없어 푼 판은 시간 없이 표시
 function initRec() {
   const r = load('rec', null); if (r) return r;
@@ -908,11 +947,12 @@ function initRec() {
 }
 let rec = initRec();
 if (!rec.lap) { rec.lap = {}; rec.lapN = 0; }
+if (!rec.streak) rec.streak = streakInit(rec);
 const frontier = () => Object.keys(rec.best).reduce((m, s) => Math.max(m, +s), 0) + 1;
-// state: 판 슬롯마다 그어 둔 선분과 그 판에 쓴 시간. L 사다리 진행 판, D 오늘의 판, R 판 고르기로 다시 푸는 지난 판(L을 덮지 않게 따로)
-// demo: 시범을 이미 봤는지. v: 선분을 그은 판의 GEN_VER(다르면 같은 번호라도 다른 판일 수 있어 선분을 버린다. 바로 앞 버전과 같은 판(gen.fenKept)은 살린다). cur: 마지막으로 보던 판 슬롯('L'|'D'|'R')
+// state: 판 슬롯마다 그어 둔 선분과 그 판에 쓴 시간. L 사다리 진행 판, D 오늘의 판, R 판 고르기로 다시 푸는 지난 판(L을 덮지 않게 따로), P 달력에서 연 지난 날의 오늘의 판({ day, fen, ms })
+// demo: 시범을 이미 봤는지. v: 선분을 그은 판의 GEN_VER(다르면 같은 번호라도 다른 판일 수 있어 선분을 버린다. 바로 앞 버전과 같은 판(gen.fenKept)은 살린다). cur: 마지막으로 보던 판 슬롯('L'|'D'|'R'|'P'|'T')
 let state = load('state', null) || { L: { st: frontier(), fen: [], ms: 0 }, demo: frontier() > 1 ? 1 : 0 };
-if (state.v !== GEN_VER) { for (const k of ['L', 'D', 'R']) if (state[k] && !fenKept(state.v, k === 'D' ? DAILY_ST : state[k].st)) state[k].fen = []; state.v = GEN_VER; }
+if (state.v !== GEN_VER) { for (const k of ['L', 'D', 'R', 'P']) if (state[k] && !fenKept(state.v, k === 'D' || k === 'P' ? DAILY_ST : state[k].st)) state[k].fen = []; state.v = GEN_VER; }
 // 옛 저장에서는 판 고르기로 연 지난 판이 L에 들어 있을 수 있다 → 사다리 진행 판으로 되돌린다
 if (rec.best[state.L.st]) state.L = { st: frontier(), fen: [], ms: 0 };
 function session() {
@@ -924,19 +964,24 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) { hiddenAt = Date.now(); save('rec', rec); return; }
   if (hiddenAt && Date.now() - hiddenAt > NEW_SESSION) { session(); save('rec', rec); }
   if (route.cur === 'daily' || route.cur === 'menu') paintDots();
+  if (route.cur === 'daily') paintDaily();   // 자정을 넘겼으면 달력·연속을 새 날짜로
 });
 
 const fmt = ms => { if (ms == null) return '✓'; const s = Math.round(ms / 1000); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
 const fmtLong = ms => { const s = Math.round(ms / 1000), h = s / 3600 | 0, m = (s / 60 | 0) % 60; return h ? `${h}시간 ${m}분` : `${m}분 ${s % 60}초`; };
 
-let cur = null;   // 지금(또는 메뉴를 열기 직전) 판: { mode: 'L'|'R'|'D', st | day }
+let cur = null;   // 지금(또는 메뉴를 열기 직전) 판: { mode: 'L'|'R'|'D'|'P'|'T', st | day }
 const board = createBoard($('b'), {
   onPlay(ms) { rec.play += ms; },
   onEdit(fen, ms) { if (cur.mode === 'T') return; const s = state[cur.mode]; s.fen = fen; s.ms = ms; save('state', state); save('rec', rec); },
   onWin(ms) {
     if (cur.mode === 'T') return lapWin();
     ms = Math.round(ms);
-    if (cur.mode === 'D') { rec.daily[cur.day] = { ms, v: GEN_VER }; state.D = null; }
+    if (cur.mode === 'D') {
+      rec.daily[cur.day] = { ms, v: GEN_VER }; state.D = null;
+      const n = runEnding(rec, cur.day);
+      rec.streak = { cur: n, best: Math.max(rec.streak.best, n), last: Math.max(rec.streak.last, cur.day) };
+    } else if (cur.mode === 'P') { rec.daily[cur.day] = { ms, v: GEN_VER, late: true }; state.P = null; }
     else {
       const o = rec.best[cur.st];
       if (!o || o.ms == null || ms < o.ms) rec.best[cur.st] = { ms, v: GEN_VER };
@@ -950,7 +995,7 @@ const board = createBoard($('b'), {
   },
   onDemoEnd() { state.demo = 1; save('state', state); },
 });
-const headText = () => cur.mode === 'D' ? `오늘의 판 · ${dayLabel(cur.day)}` : `${cur.st}판`;
+const headText = () => cur.mode === 'D' ? `오늘의 판 · ${dayLabel(cur.day)}` : cur.mode === 'P' ? `지난 판 · ${dayLabel(cur.day)}` : `${cur.st}판`;
 
 function show(P, s, demo) {
   $('hd').innerHTML = `${headText()} · 우리마다 <b>${P.N}</b>마리`;
@@ -972,12 +1017,20 @@ function openR(st) {
 }
 function openD() {
   const day = dayNum();
+  calDay = 0;   // 메뉴에서 들어오면 달력은 이번 달
   if (solvedOn(rec, day)) return route.go('daily');
-  // 지난 날 풀던 오늘의 판은 버린다(지난 날 판은 못 연다)
+  // 지난 날 풀던 오늘의 판은 버린다(지난 날 판은 달력에서 다시 연다)
   if (!state.D || state.D.day !== day) state.D = { day, fen: [], ms: 0 };
   cur = { mode: 'D', day }; state.cur = 'D'; save('state', state);
   route.go('board');
   show(dailyMake(day), state.D, false);
+}
+// 달력에서 연 지난 날의 판. 오늘의 판 화면(d 2) 위 칸(d 3)이라 뒤로 가기는 오늘의 판 화면
+function openP(day) {
+  if (!state.P || state.P.day !== day) state.P = { day, fen: [], ms: 0 };
+  cur = { mode: 'P', day }; state.cur = 'P'; save('state', state);
+  route.go('board');
+  show(dailyMake(day), state.P, false);
 }
 // 앱 시작: 마지막으로 보던 판. 오늘의 판은 날짜가 같고 선분을 그어 두었을 때만(열어만 본 오늘의 판으로는 돌아가지 않는다). 그 밖에는 사다리 판
 // cur가 없는 옛 저장은 오늘의 판에 선분이 있으면 오늘의 판
@@ -986,6 +1039,7 @@ function resume() {
   if (state.cur === 'T') { openL(); return toDepth(1, () => route.go('menu')); }
   const d = dayNum(), D = state.D && state.D.day === d && state.D.fen.length && !solvedOn(rec, d);
   if (state.cur === 'R' && state.R) { openR(state.R.st); boardEntry('R'); }
+  else if (state.cur === 'P' && state.P && !solvedOn(rec, state.P.day)) { openP(state.P.day); toDepth(1, () => { push('daily'); push('board', { m: 'P' }); }); }
   else if (D && (state.cur === 'D' || !state.cur)) { openD(); boardEntry('D'); }
   else { openL(); toDepth(0); }
 }
@@ -995,9 +1049,7 @@ function paintDots() { const on = Object.keys(rec.best).length >= 2 && !solvedOn
 const route = router({
   board: { enter() { paintDots(); board.start(); }, leave() { board.stop(); cancelLap(); } },
   menu: { enter() { paintDots(); $('cont').textContent = `이어 하기 · ${state.L.st}판`; } },
-  daily: {
-    enter() { const d = dayNum(), r = rec.daily[d]; $('dy').innerHTML = `<p class="big">${dayLabel(d)}</p><p>${fmt(r.ms)}</p><p class="mut">내일 새 판이 열려요</p>`; shareReset($('dyShr')); $('dyShr').dataset.text = lap.dailyText(d, r.ms); },
-  },
+  daily: { enter: paintDaily },
   lap: { enter: paintLap },
   lapdone: { enter: paintLapDone },
   pick: { enter: paintPick },
@@ -1005,6 +1057,43 @@ const route = router({
   set: { enter: paintSet },
   move: { enter(what) { paintMove(what); } },
   priv: {},
+});
+
+// 오늘의 판 화면: 연속 일수 + 오늘 결과(아직이면 풀기) + 달력. 오늘을 안 푼 채 오는 것은 자정을 넘겼거나 지난 날 판에서 돌아올 때뿐
+let calYM = 0, calDay = 0;   // 달력이 보여 주는 달(YYYYMM), 그 달을 정한 날(날짜가 바뀌면 이번 달로)
+function paintDaily() {
+  const d = dayNum(), r = rec.daily[d], n = streakOf(rec, d), best = Math.max(rec.streak.best, n);
+  if (calDay !== d) { calYM = d / 100 | 0; calDay = d; }
+  $('sk').hidden = !n; $('sk').innerHTML = n ? `연속 <b>${n}</b>일<span>최고 ${best}일</span>` : '';
+  $('dy').innerHTML = `<p class="big">${dayLabel(d)}</p>` + (r ? `<p>${fmt(r.ms)}</p><p class="mut">내일 새 판이 열려요</p>` : `<button class="wide" data-day="${d}">오늘의 판 풀기</button>`);
+  $('dyShr').hidden = !r; shareReset($('dyShr')); if (r) $('dyShr').dataset.text = lap.dailyText(d, r.ms, n);
+  paintCal();
+}
+const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+const ymAdd = (ym, k) => { const m = (ym / 100 | 0) * 12 + ym % 100 - 1 + k; return (m / 12 | 0) * 100 + m % 12 + 1; };
+function paintCal() {
+  const d = dayNum(), now = d / 100 | 0, y = calYM / 100 | 0, m = calYM % 100;
+  const min = Object.keys(rec.daily).reduce((a, k) => Math.min(a, k / 100 | 0), now);
+  let h = WEEK.map(w => `<b>${w}</b>`).join('') + '<i></i>'.repeat(new Date(y, m - 1, 1).getDay());
+  for (let k = 1, n = new Date(y, m, 0).getDate(); k <= n; k++) {
+    const day = calYM * 100 + k, o = rec.daily[day], t = day === d ? ' today' : '';
+    if (day > d) h += `<span class="cd fut">${k}</span>`;
+    else if (o) h += `<span class="cd ${o.late ? 'late' : 'on'}${t}" aria-label="${dayLabel(day)} ${o.late ? '나중에 풂' : '풂'}">${k}<i></i></span>`;
+    else h += `<button class="cd miss${t}" data-day="${day}" aria-label="${dayLabel(day)} 판 열기">${k}<i></i></button>`;
+  }
+  $('cal').innerHTML = h;
+  $('calM').textContent = `${y}년 ${m}월`;
+  $('calP').style.visibility = calYM > min ? '' : 'hidden';
+  $('calN').style.visibility = calYM < now ? '' : 'hidden';
+}
+$('calP').onclick = () => { calYM = ymAdd(calYM, -1); paintCal(); };
+$('calN').onclick = () => { calYM = ymAdd(calYM, 1); paintCal(); };
+// 오늘(아직 안 풂)이면 오늘의 판, 지난 날이면 그날 판. 미래 칸은 버튼이 아니다. 오늘의 판 화면 위 칸으로 연다
+$('s-daily').addEventListener('click', e => {
+  const b = e.target.closest('button[data-day]'); if (!b) return;
+  const day = +b.dataset.day, d = dayNum();
+  if (day > d || solvedOn(rec, day)) return paintDaily();   // 그사이 날짜가 바뀌었거나 이미 풂
+  if (day === d) { openD(); push('board', { m: 'D' }); } else { openP(day); push('board', { m: 'P' }); }
 });
 
 function paintPick() {
@@ -1022,7 +1111,7 @@ function paintPick() {
 function paintSet() {
   const solved = Object.keys(rec.best).length, avg = rec.solves ? rec.solveMs / rec.solves : null;
   $('stats').innerHTML = `<dt>놀이 시간</dt><dd>${fmtLong(rec.play)}</dd><dt>푼 판</dt><dd>${solved + rec.lapN}</dd>` +
-    `<dt>판당 평균</dt><dd>${avg == null ? '-' : fmtLong(avg)}</dd><dt>세션</dt><dd>오늘 ${rec.ses.day === dayNum() ? rec.ses.today : 0} · 전체 ${rec.ses.n}</dd>`;
+    `<dt>오늘의 판</dt><dd>${Object.keys(rec.daily).length}일 풀음</dd><dt>판당 평균</dt><dd>${avg == null ? '-' : fmtLong(avg)}</dd><dt>세션</dt><dd>오늘 ${rec.ses.day === dayNum() ? rec.ses.today : 0} · 전체 ${rec.ses.n}</dd>`;
   $('snd').setAttribute('aria-pressed', soundOn()); $('snd').textContent = soundOn() ? '켬' : '끔';
   $('ok').hidden = true; $('hold').hidden = false;
 }
@@ -1173,6 +1262,8 @@ function land(h) {
   } else if (h.s === 'board') {
     if (cur.mode === h.m) { if (route.cur !== 'board') route.go('board'); return; }   // 메뉴 ◀: 열기 직전 판을 그대로
     if (h.m === 'R' && state.R) openR(state.R.st);
+    else if (h.m === 'P' && state.P && !solvedOn(rec, state.P.day)) openP(state.P.day);
+    else if (h.m === 'P') { history.replaceState({ d: h.d, s: 'daily' }, ''); route.go('daily'); }
     else if (h.m === 'D' && !solvedOn(rec, dayNum())) openD();
     else { history.replaceState({ d: h.d, s: 'menu' }, ''); route.go('menu'); }
   } else if (h.s !== route.cur) route.go(h.s);
@@ -1188,7 +1279,7 @@ if (H) addEventListener('popstate', e => {
 
 $('mn').onclick = () => { if (cur.mode === 'T') return toDepth(1, () => route.go('menu')); push('menu'); route.go('menu'); };
 $('re').onclick = () => board.clear();
-$('nx').onclick = () => toDepth(0, openL);
+$('nx').onclick = () => cur.mode === 'P' ? goBack('daily') : toDepth(0, openL);   // 지난 날 판을 풀면 달력으로
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
   const t = b.dataset.go;
   if (b.closest('.top')) return goBack(t);   // ◀
@@ -1206,6 +1297,18 @@ resume();
 })();
 
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<style>#swup{position:fixed;left:0;right:0;bottom:0;z-index:100;display:flex;align-items:center;background-color:#3A2A1C;color:#fff;padding:0 4px env(safe-area-inset-bottom,0px) 0;box-shadow:0 -2px 8px #0003}
+#swup button{min-height:44px;height:44px;border-radius:0;background-color:transparent;color:#fff;font-size:15px;font-weight:600;padding:0 16px}
+#swup .go{flex:1;text-align:left}#swup .go b{color:#FFB4A6}#swup .x{width:44px;padding:0;font-size:22px;opacity:.8}</style>
+<script>if('serviceWorker' in navigator){(()=>{const sw=navigator.serviceWorker;let ctl=sw.controller,down=false,refreshing=false,bar=null;
+addEventListener('pointerdown',()=>down=true,true);['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>down=false,true));
+sw.addEventListener('controllerchange',()=>{const prev=ctl;ctl=sw.controller;if(!prev||refreshing)return;refreshing=true;const go=()=>location.reload();if(!down)return go();
+const f=()=>{removeEventListener('pointerup',f,true);removeEventListener('pointercancel',f,true);setTimeout(go,0)};addEventListener('pointerup',f,true);addEventListener('pointercancel',f,true)});
+const show=w=>{if(!sw.controller)return;if(bar)bar.remove();bar=document.createElement('div');bar.id='swup';bar.setAttribute('role','status');
+bar.innerHTML='<button class="go" type="button">새 버전이 있어요 · <b>새로 고침</b></button><button class="x" type="button" aria-label="닫기">×</button>';
+bar.querySelector('.go').onclick=()=>{w.postMessage('skipWaiting');bar.remove();bar=null};bar.querySelector('.x').onclick=()=>{bar.remove();bar=null};document.body.appendChild(bar)};
+sw.register('sw.js').then(reg=>{if(reg.waiting)show(reg.waiting);
+reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')show(w)})});
+const up=()=>reg.update().catch(()=>{});setInterval(up,36e5);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')up()})})})()}</script>
 </body>
 </html>
