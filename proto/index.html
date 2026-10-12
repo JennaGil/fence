@@ -178,6 +178,22 @@ button.cd{padding:0;background-color:transparent;min-width:0}
 .gb.off{background-color:#3A2A1C0a;box-shadow:none}
 .gb.off .gpic{filter:brightness(0);opacity:.22}
 .gb.off p{opacity:.6}
+
+.hn{min-height:44px;min-width:44px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:700;white-space:nowrap;background-color:#F3E2C0;color:#3A2A1C;box-shadow:0 2px 0 #5A3A1C33;flex:none}
+.hn b{color:#E8563F;margin-left:2px}
+.hn.off{opacity:.45}
+.pk{position:relative}
+.pk .ph{font-style:normal;font-size:10px;font-weight:700;color:#B0503A;line-height:1}
+#pvRule p{margin:6px 0 0;font-size:13.5px}
+#pvRule b{margin-right:4px}
+#pvTaste{margin-top:10px}
+#pvTaste small{display:block;font-size:12px;font-weight:700;opacity:.7;margin-bottom:6px}
+.row.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.row.three button{padding:0 4px;font-size:13px;min-height:44px}
+.pvc>.row{margin-top:10px}
+.lv-soon{top:40%}
+.pvp:not(.two) canvas{max-height:32vh;width:auto;max-width:100%;margin:0 auto}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;margin:0;padding:10px 16px;border-radius:12px;background-color:#3A2A1CE6;color:#fff;font-size:14px;font-weight:600;white-space:nowrap;pointer-events:none}
 /* 한 줄로 */
 #b.b-line{background-color:#E9DDC4}
 .b-line canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
@@ -211,15 +227,17 @@ button.cd{padding:0;background-color:transparent;min-width:0}
       <div class="row two"><button id="gsX" class="sub">닫기</button><button id="gsGo">같이 풀기</button></div></div>
   </div>
   <div id="pv" class="sheet" role="dialog" aria-labelledby="pvT" hidden>
-    <div class="gsc pvc"><b id="pvT"></b><div id="pvPic" class="pvp"></div><p id="pvRule"></p><p id="pvCond"></p>
-      <div class="row two"><button id="pvX" class="sub">닫기</button><button id="pvGo">맛보기 한 판</button></div></div>
+    <div class="gsc pvc"><b id="pvT"></b><div id="pvPic" class="pvp"></div><div id="pvRule"></div><p id="pvCond"></p>
+      <div id="pvTaste"><small>맛보기 한 판</small><div class="row three"><button class="sub" data-taste="fence">울타리 치기</button><button class="sub" data-taste="line">한 줄로</button><button class="sub" data-taste="loop">한붓 퍼즐</button></div></div>
+      <div class="row"><button id="pvX" class="sub">닫기</button></div></div>
   </div>
 </section>
 <section id="s-board" class="scr" hidden>
-  <div class="top"><button id="hm" class="ic" aria-label="홈"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg></button><div id="hd"></div><button id="mn" class="ic" aria-label="메뉴"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><i class="dot" hidden></i></button></div>
+  <div class="top"><button id="hm" class="ic" aria-label="홈"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg></button><div id="hd"></div><button id="hintBtn" class="hn" hidden>힌트 <b>0</b></button><button id="mn" class="ic" aria-label="메뉴"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><i class="dot" hidden></i></button></div>
   <div id="b"></div>
   <div id="bar"><button id="re" class="sub">다시</button><button id="nx" class="next" aria-label="다음 판" hidden><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div>
   <p id="tip"></p>
+  <p id="toast" class="toast" role="status" hidden></p>
 </section>
 <section id="s-menu" class="scr" hidden>
   <div class="top"><button class="ic" data-go="board" aria-label="판으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="mnT">메뉴</h1><i></i></div>
@@ -227,7 +245,7 @@ button.cd{padding:0;background-color:transparent;min-width:0}
     <button id="cont" data-go="cont"></button>
     <button data-go="daily">오늘의 판<i class="dot" hidden></i></button>
     <button data-go="lap">타임 랩</button>
-    <button data-go="pick">판 고르기</button>
+    <button data-go="pick" data-do="0">판 고르기</button>
     <button data-go="book">도감</button>
     <button data-go="set">설정</button>
     <button data-go="home">홈으로</button>
@@ -254,7 +272,7 @@ button.cd{padding:0;background-color:transparent;min-width:0}
   <div class="card shr" id="ldShr"><div class="row two"><button class="sub" id="ldRe">다시</button><button data-share>기록 공유</button></div><p class="msg" hidden></p><textarea readonly hidden aria-label="공유할 기록"></textarea></div>
 </section>
 <section id="s-pick" class="scr" hidden>
-  <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>판 고르기</h1><i></i></div>
+  <div class="top"><button class="ic" data-go="menu" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="pkT">판 고르기</h1><i></i></div>
   <div id="pk"></div>
 </section>
 <section id="s-book" class="scr" hidden>
@@ -632,11 +650,343 @@ function router(screens) {
 
 return { store, raw, app, migrate, soundOn, setSound, audio, tone, buzz, router };
 })();
+__m.games_loop_gen = (() => {
+// 한붓 퍼즐 생성기: design/toys/h1.src.html PURE 블록에 40판 사다리(TIERS 4·5)와 찍기 거부 필터(p3max·band)를 더했다.
+// 판을 바꾸는 변경이면 같은 판 번호의 판이 달라진다 → GEN_VER를 올릴 것. 2: 40판 사다리·찍기 거부(1~3판은 1과 같음)
+const GEN_VER = 2;
+// 바로 앞 GEN_VER와 판이 같은 판 번호 상한
+const SAME_AS_PREV_MAX = 3;
+const W=360;
+const H=432;
+const PAD=28;
+const MIN_D=52;
+const M=26;
+const CL=22;
+const RR=17;
+const AR=20;
+const EA=2*AR;
+const EO=AR;
+function rng(s){return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const RF=(r,a,b)=>a+r()*(b-a);
+const RI=(r,a,b)=>a+Math.floor(r()*(b-a+1));
+function inPoly(x,y,p){let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)c=!c}return c}
+function area(p){let s=0;for(let i=0,j=p.length-1;i<p.length;j=i++)s+=(p[j].x+p[i].x)*(p[j].y-p[i].y);return Math.abs(s/2)}
+function tooShort(p){return p.length<6||area(p)<900}
+function hull(ps){
+  const p=ps.slice().sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+  if(p.length<3)return p;const lo=[],up=[];
+  for(const q of p){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}
+  for(let i=p.length-1;i>=0;i--){const q=p[i];while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
+  return lo.slice(0,-1).concat(up.slice(0,-1));
+}
+function dPS(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l)):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
+function segX(a,b,c,d){const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));return o(a,b,c)*o(a,b,d)<=0&&o(c,d,a)*o(c,d,b)<=0&&Math.max(a.x,b.x)>=Math.min(c.x,d.x)&&Math.max(c.x,d.x)>=Math.min(a.x,b.x)&&Math.max(a.y,b.y)>=Math.min(c.y,d.y)&&Math.max(c.y,d.y)>=Math.min(a.y,b.y)}
+function dSS(a,b,c,d){return segX(a,b,c,d)?0:Math.min(dPS(a,c,d),dPS(b,c,d),dPS(c,a,b),dPS(d,a,b))}
+const edges=h=>h.length<2?[[h[0],h[0]]]:h.length===2?[[h[0],h[1]]]:h.map((q,i)=>[q,h[(i+1)%h.length]]);
+function dHull(p,h){return h.length>2&&inPoly(p.x,p.y,h)?0:Math.min(...edges(h).map(([a,b])=>dPS(p,a,b)))}
+function dSegHull(a,b,h){return h.length>2&&(inPoly(a.x,a.y,h)||inPoly(b.x,b.y,h))?0:Math.min(...edges(h).map(([c,d])=>dSS(a,b,c,d)))}
+function inflate(ps,r){const q=[];for(const p of ps)for(let i=0;i<16;i++){const t=i*Math.PI/8;q.push({x:p.x+r*Math.cos(t),y:p.y+r*Math.sin(t)})}return hull(q)}
+// 바위가 올가미 안에 들어가도 무효. 판정은 동물/바위 중심점 기준.
+function judge(animals,p,rocks=[]){
+  const inside=animals.filter(a=>inPoly(a.x,a.y,p)),rin=rocks.filter(k=>inPoly(k.x,k.y,p)),cnt={};
+  inside.forEach(a=>cnt[a.kind]=(cnt[a.kind]||0)+1);
+  const kinds=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]),mixed=kinds.length>1;
+  return{ok:inside.length>=2&&!mixed&&!rin.length,inside,mixed,rin,wrong:mixed?inside.filter(a=>a.kind!=kinds[0]):inside.length===1?inside:[]};
+}
+// 선분 a→b가 바위(반지름 RR)·동물(반지름 AR) 위를 지나거나 울타리를 가로지르면 그것을 돌려준다
+function cutAt(a,b,rocks,fences,animals=[]){
+  for(const k of rocks)if(dPS(k,a,b)<RR)return{k:'rock',o:k};
+  for(const o of animals)if(dPS(o,a,b)<AR)return{k:'animal',o};
+  for(const f of fences)if(dSS(a,b,f.a,f.b)<3)return{k:'fence',o:f};
+  return null;
+}
+function polyCut(p,rocks,fences,animals){for(let i=0;i<p.length;i++){const c=cutAt(p[i],p[(i+1)%p.length],rocks,fences,animals);if(c)return c}return null}
+// 볼록 올가미로 sub만 감쌀 수 있는가. 선은 동물 위를 못 지나므로 올가미는 최소 hull(sub)+AR,
+// 다른 동물은 그 바깥으로 AR 이상(=껍질에서 EA 초과) 떨어져 있어야 한다.
+function free(sub,others,rocks,fences){
+  const h=hull(sub);
+  return others.every(o=>dHull(o,h)>EA)&&rocks.every(k=>dHull(k,h)>EO+RR)&&fences.every(f=>dSegHull(f.a,f.b,h)>EO);
+}
+const TIERS=[
+  {g:[2,3],s:[2,3],rk:[0,0],fc:0,rep:[0,0],pr:[0,0],free:9},
+  {g:[3,4],s:[2,3],rk:[1,2],fc:0,rep:[1,1],pr:[1,1],free:2},
+  // 9판부터: free(처음부터 혼자 감쌀 수 있는 묶음 수 상한) 1은 유효 판 하나에 시도 10~50회라 느려서 2~3으로. 찍기는 band가 막는다
+  {g:[4,5],s:[2,4],rk:[1,2],fc:1,rep:[1,2],pr:[1,2],free:2},
+  {g:[5,6],s:[2,4],rk:[0,2],fc:2,rep:[2,2],pr:[2,9],free:2},
+  {g:[6,7],s:[2,3],rk:[1,2],fc:3,rep:[3,3],pr:[3,9],free:2},
+  {g:[7,7],s:[2,3],rk:[1,2],fc:3,rep:[3,4],pr:[3,9],free:3}];
+const tierOf=n=>n<=3?0:n<=8?1:n<=15?2:n<=22?3:n<=30?4:5;
+const inB=(p,m)=>p.x>=m&&p.x<=W-m&&p.y>=m&&p.y<=H-m;
+// 역방향 생성: 묶음을 하나씩 놓되 새 묶음의 올가미는 이미 놓인 동물을 피한다. 놓은 순서의 역순이 해법.
+function tryGen(T,K,G,r){
+  const groups=[],animals=[],blocked=[];
+  // 종류를 다시 쓸 자리(같은 종류 두 묶음)를 미리 정한다
+  const repK=new Set();for(let n=Math.max(RI(r,...T.rep),G-K);repK.size<Math.min(n,G-1);)repK.add(RI(r,1,G-1));
+  for(let k=0;k<G;k++){
+    const hs=groups.map(g=>hull(g.m)),un=groups.map((_,j)=>j).filter(j=>!blocked[j]),used=new Set(groups.map(g=>g.kind));
+    let best=null,bs=-1;
+    // 후보 묶음을 여럿 만들어 아직 안 막힌 앞 묶음을 가장 많이 막는 것을 고른다
+    for(let t=0;t<60;t++){
+      const size=RI(r,...T.s),mem=[],tg=k&&r()<.85?(un.length?un[RI(r,0,un.length-1)]:RI(r,0,k-1)):-1;
+      const okP=p=>inB(p,PAD)&&animals.concat(mem).every(o=>Math.hypot(o.x-p.x,o.y-p.y)>=MIN_D);
+      if(tg<0){const p={x:RF(r,PAD,W-PAD),y:RF(r,PAD,H-PAD)};if(okP(p))mem.push(p)}
+      else{
+        const tm=groups[tg].m;
+        for(let i=0;i<20&&!mem.length;i++){
+          const w=tm.length>2?tm.map(()=>r()):[RF(r,.3,.7)].map(u=>[u,1-u])[0],s=w.reduce((a,b)=>a+b),j=30;
+          const p={x:tm.reduce((a,q,i)=>a+q.x*w[i],0)/s+RF(r,-j,j),y:tm.reduce((a,q,i)=>a+q.y*w[i],0)/s+RF(r,-j,j)};
+          if(dHull(p,hs[tg])<=EA-8&&okP(p))mem.push(p);
+        }
+      }
+      for(let i=0;i<60&&mem.length&&mem.length<size;i++){
+        const b=mem[RI(r,0,mem.length-1)],a=RF(r,0,6.283),d=RF(r,64,150),p={x:b.x+d*Math.cos(a),y:b.y+d*Math.sin(a)};
+        if(okP(p))mem.push(p);
+      }
+      if(mem.length<2)continue;
+      const L=inflate(mem,M);
+      if(!L.every(q=>inB(q,2)))continue;
+      if(!animals.every(a=>!inPoly(a.x,a.y,L)&&dHull(a,L)>=CL))continue;
+      // 껍질에서 EA 안에 있으면 선이 그 동물을 피해 이 묶음을 감쌀 수 없다
+      const hit=hs.map(h=>mem.some(p=>dHull(p,h)<=EA-4));
+      // 가까운 묶음과 같은 종류면 한 번에 묶여 버리므로 피한다
+      const ban=new Set(groups.filter((g,j)=>mem.some(p=>dHull(p,hs[j])<=EA+30)).map(g=>g.kind));
+      const fresh=[...Array(K).keys()].filter(c=>!used.has(c)&&!ban.has(c)),old=[...used].filter(c=>!ban.has(c));
+      const pool=repK.has(k)?old:fresh.length?fresh:old;if(!pool.length)continue;
+      // 동물 전체 무게중심이 판 중앙에서 15% 넘게 벗어나면 감점(한쪽에 몰린 판 방지)
+      const all=animals.concat(mem),off=Math.hypot(all.reduce((a,q)=>a+q.x,0)/all.length/W-.5,all.reduce((a,q)=>a+q.y,0)/all.length/H-.5);
+      const s=un.filter(j=>hit[j]).length*10+hit.filter(Boolean).length+r()-(off>.15?(off-.15)*60:0);
+      if(s>bs){
+        // 종류를 다시 쓸 땐 같은 종류 묶음과 멀리 떨어뜨려 사이에 장애물이 들어갈 틈을 만든다
+        const far=c=>Math.min(...animals.filter(a=>a.kind===c).flatMap(a=>mem.map(p=>Math.hypot(a.x-p.x,a.y-p.y))),1e9);
+        const kind=pool===fresh?pool[RI(r,0,pool.length-1)]:pool.reduce((x,y)=>far(y)>far(x)?y:x);
+        bs=s;best={mem,L,hit,kind}}
+    }
+    if(!best)return null;
+    best.hit.forEach((h,j)=>{if(h)blocked[j]=true});
+    const kind=best.kind,g={kind,m:best.mem.map(p=>({x:p.x,y:p.y,kind,g:k})),L:best.L};groups.push(g);animals.push(...g.m);
+  }
+  const pairs=[];groups.forEach((a,i)=>groups.forEach((b,j)=>{if(i<j&&a.kind===b.kind)pairs.push([a,b])}));
+  if(pairs.length<T.pr[0]||pairs.length>T.pr[1])return null;
+  const rocks=[],fences=[],Ls=groups.map(g=>g.L),AH=hull(animals);
+  // 같은 종류 분리를 최우선, 다음으로 동물 무리 안쪽에 들어와 실제로 길을 막는 위치를 고른다
+  const unsep=()=>pairs.filter(([a,b])=>free(a.m.concat(b.m),[],rocks,fences));
+  const pick=(cand,score,n)=>{let best=null,bs=-1;for(let i=0;i<n;i++){const c=cand();if(!c)continue;const s=score(c);if(s>bs){bs=s;best=c}}return best};
+  for(let i=0;i<T.fc;i++){
+    const f=pick(()=>{
+      const side=RI(r,0,3),t=RF(r,.15,.85),ang=[0,Math.PI,Math.PI/2,-Math.PI/2][side]+RF(r,-.6,.6),len=RF(r,90,200);
+      const a=[{x:-8,y:t*H},{x:W+8,y:t*H},{x:t*W,y:-8},{x:t*W,y:H+8}][side],b={x:a.x+len*Math.cos(ang),y:a.y+len*Math.sin(ang)};
+      if(!inB(b,PAD))return null;
+      if(!Ls.every(L=>dSegHull(a,b,L)>=8))return null;
+      if(!animals.every(o=>dPS(o,a,b)>=30))return null;
+      if(!fences.every(g=>dSS(a,b,g.a,g.b)>=40))return null;
+      return{a,b};
+    },f=>{fences.push(f);const s=pairs.length-unsep().length;fences.pop();let n=0;for(let i=0;i<=10;i++)if(dHull({x:f.a.x+(f.b.x-f.a.x)*i/10,y:f.a.y+(f.b.y-f.a.y)*i/10},AH)<=10)n++;return s*10+n/2+r()},120);
+    if(!f)return null;fences.push(f);
+  }
+  const nr=RI(r,...T.rk);
+  for(let i=0;i<nr;i++){
+    const k=pick(()=>{
+      const c={x:RF(r,PAD,W-PAD),y:RF(r,PAD,H-PAD)};
+      if(!animals.every(o=>Math.hypot(o.x-c.x,o.y-c.y)>=38))return null;
+      if(!Ls.every(L=>!inPoly(c.x,c.y,L)&&dHull(c,L)>=RR+6))return null;
+      if(!fences.every(f=>dPS(c,f.a,f.b)>=RR+14)||!rocks.every(o=>Math.hypot(o.x-c.x,o.y-c.y)>=60))return null;
+      return c;
+    },c=>{rocks.push(c);const s=pairs.length-unsep().length;rocks.pop();const d=Math.min(...Ls.map(L=>dHull(c,L)));return s*10+(dHull(c,AH)<=0?4:0)+(d<RR+26?2:0)+r()},120);
+    if(!k)return null;rocks.push(k);
+  }
+  const nFree=groups.filter(g=>free(g.m,animals.filter(a=>!g.m.includes(a)),rocks,fences)).length;
+  if(nFree>T.free)return null;
+  return{animals,groups,rocks,fences,par:G,sol:groups.map((_,i)=>G-1-i)};
+}
+// 해법 순서대로 볼록 올가미(묶음을 M만큼 부풀린 껍질)를 적용해 전부 사라지는지 확인
+function verify(b){
+  let rem=b.animals.slice();
+  for(const k of b.sol){
+    const g=b.groups[k],L=g.L;
+    if(polyCut(L,b.rocks,b.fences,rem))return{ok:false,why:'cut',k};
+    const j=judge(rem,L,b.rocks);
+    if(!j.ok||j.inside.length!==g.m.length||!g.m.every(a=>j.inside.includes(a)))return{ok:false,why:'judge',k};
+    rem=rem.filter(a=>!g.m.includes(a));
+    if(!rem.every(a=>dHull(a,L)>=CL))return{ok:false,why:'margin',k};
+  }
+  return{ok:!rem.length,why:rem.length?'left':''};
+}
+// 낙관적 볼록 올가미 모델에서 limit 수 안에 다 없앨 수 있는가(파가 최적인지 확인용). 탐색 예산을 넘으면 null.
+// 부분집합마다 "막는 동물 비트마스크"를 한 번만 계산해 두면 탐색 중 판정은 비트 연산 하나다.
+function solvable(b,limit,budget=200000){
+  const A=b.animals,n=A.length,memo=new Map(),blk=new Map();let left=budget;
+  const blockers=sm=>{
+    if(blk.has(sm))return blk.get(sm);
+    const sub=[];for(let i=0;i<n;i++)if(sm>>i&1)sub.push(A[i]);
+    const h=hull(sub);let v=-1;
+    if(b.rocks.every(k=>dHull(k,h)>EO+RR)&&b.fences.every(f=>dSegHull(f.a,f.b,h)>EO)){v=0;for(let i=0;i<n;i++)if(!(sm>>i&1)&&dHull(A[i],h)<=EA)v|=1<<i}
+    blk.set(sm,v);return v;
+  };
+  function go(mask,d){
+    if(!mask)return true;
+    if(--left<0)throw 0;
+    const byK={};for(let i=0;i<n;i++)if(mask>>i&1)(byK[A[i].kind]=byK[A[i].kind]||[]).push(i);
+    const ks=Object.values(byK);if(ks.some(v=>v.length<2)||ks.length>d)return false;
+    if((memo.get(mask)??-1)>=d)return false;
+    for(const v of ks){
+      const subs=[];for(let s=1;s<1<<v.length;s++){let c=0,sm=0;v.forEach((i,j)=>{if(s>>j&1){c++;sm|=1<<i}});if(c>=2)subs.push([sm,c])}
+      subs.sort((x,y)=>y[1]-x[1]);
+      for(const [sm] of subs){const bl=blockers(sm);if(bl>=0&&!(bl&mask)&&go(mask&~sm,d-1))return true}
+    }
+    memo.set(mask,d);return false;
+  }
+  try{return go((1<<n)-1,limit)}catch(e){if(e===0)return null;throw e}
+}
+// maximal 봇(닿는 같은 종류는 다 감싸는 올가미만, 그중 무작위)이 파 안에 끝낼 정확 확률(= 별 3 확률). solvable()과 같은 볼록 올가미 모델
+function p3max(b){
+  const A=b.animals,n=A.length,blk=new Map(),mv=new Map(),pm=new Map();
+  const blockers=sm=>{
+    if(blk.has(sm))return blk.get(sm);
+    const sub=[];for(let i=0;i<n;i++)if(sm>>i&1)sub.push(A[i]);
+    const h=hull(sub);let v=-1;
+    if(b.rocks.every(k=>dHull(k,h)>EO+RR)&&b.fences.every(f=>dSegHull(f.a,f.b,h)>EO)){v=0;for(let i=0;i<n;i++)if(!(sm>>i&1)&&dHull(A[i],h)<=EA)v|=1<<i}
+    blk.set(sm,v);return v;
+  };
+  const moves=mask=>{
+    if(mv.has(mask))return mv.get(mask);
+    const byK={};for(let i=0;i<n;i++)if(mask>>i&1)(byK[A[i].kind]=byK[A[i].kind]||[]).push(i);
+    const out=[];
+    for(const v of Object.values(byK))for(let s=1;s<1<<v.length;s++){let c=0,sm=0;v.forEach((i,j)=>{if(s>>j&1){c++;sm|=1<<i}});if(c<2)continue;const bl=blockers(sm);if(bl>=0&&!(bl&mask))out.push(sm)}
+    const res=out.filter(s=>!out.some(t=>t!==s&&(t&s)===s));
+    mv.set(mask,res);return res;
+  };
+  const p3=(mask,d)=>{if(!mask)return 1;if(!d)return 0;const key=mask*32+d;if(pm.has(key))return pm.get(key);const m=moves(mask);let p=0;for(const s of m)p+=p3(mask&~s,d-1);p=m.length?p/m.length:0;pm.set(key,p);return p};
+  return p3((1<<n)-1,b.par);
+}
+// 난이도 E3 = log2(1/maximal 봇 별 3 확률)(= 찍어서 별 3까지 기대 시도의 log2), 확률 0이면 10
+const e3=b=>{const p=p3max(b);return p>0?Math.min(10,Math.log2(1/p)):10};
+// 띠 [lo, hi]: 4판 [1.74, 3.34] → 40판 [4, 7] 선형. lo는 찍기 방지(4판에서 별 3 확률 30% 이하)라 반드시 지키고, hi는 넘지 않는 후보를 고른다. 1~3판은 띠 없음(규칙 익히기)
+function band(n){const t=Math.min(1,Math.max(0,(n-4)/36)),lo=1.74+2.26*t;return[lo,lo+1.6+1.4*t]}
+// 유효한 판(풀이 검증·파 최적·lo 이상)을 MAKE_TRIES개 모을 때까지 hi 이하인 판이 없으면 그중 hi에 가장 가까운 판
+const MAKE_TRIES=8;
+// 시도 하나마다 yield 해서 브라우저가 프레임을 나눠 미리 만들 수 있게 한다
+function* genIter(n,K,seed=n){
+  const r=rng(n*7919+seed*104729+1),T=TIERS[tierOf(n)],G=RI(r,...T.g),B=n<4?null:band(n);
+  let best=null,bd=Infinity,valid=0;
+  for(let t=0;t<20000;t++){
+    const b=tryGen(T,K,G,r);
+    if(b&&verify(b).ok&&solvable(b,b.par-1)===false){
+      if(!B)return Object.assign(b,{n,seed,tries:t+1});
+      const x=e3(b);
+      if(x>=B[0]){valid++;const d=Math.max(0,x-B[1]);if(d<bd){bd=d;best=Object.assign(b,{n,seed,tries:t+1,E3:x})}}
+      if(best&&(bd===0||valid>=MAKE_TRIES))return best;
+    }
+    yield;
+  }
+  return best;
+}
+function gen(n,K,seed=n){const it=genIter(n,K,seed);let x;while(!(x=it.next()).done);return x.value}
+
+return { GEN_VER, SAME_AS_PREV_MAX, W, H, PAD, MIN_D, M, CL, RR, AR, EA, EO, rng, RF, RI, inPoly, area, tooShort, hull, dPS, segX, dSS, edges, dHull, dSegHull, inflate, judge, cutAt, polyCut, free, TIERS, tierOf, inB, tryGen, verify, solvable, p3max, e3, band, MAKE_TRIES, genIter, gen };
+})();
+__m.hint = (() => {
+// 힌트: 게임별로 "무엇을 보여 줄지"(plan)를 정하고, 보드 API로 점멸(flash) → 적용(apply)한다. 쿠폰 차감은 useHint가 맡는다
+// boardApi(각 board.js가 돌려주는 판 객체): getState(), puzzle, flash(targets, color, ms) → Promise<bool>, apply(action), isBusy(), solved
+const { app } = __m.core;
+const { judge, polyCut } = __m.games_loop_gen;
+
+const HINT_MS = 1500;
+
+// 울타리 치기: 어긋난 선분 지우기 > 전파기 A가 확정하는 선분 긋기 > 정답 선분 긋기
+function planFence(B) {
+  const P = B.puzzle, fen = new Set(B.getState());
+  for (const e of fen) if (P.fix[e] === -1 && !P.sol[e]) return { targets: [e], color: 'bad', action: { e, on: 0 } };
+  const e = forced(P, fen);
+  return e < 0 ? null : { targets: [e], color: 'hint', action: { e, on: 1 } };
+}
+// 전파기 A(test/human.mjs Mind와 같은 규칙): R0 단서 + R1 이웃한 다른 동물 사이 + R2 후보 우리가 하나뿐인 칸은 그 우리로 확정.
+// 후보 열거가 상한을 넘으면(P.pens null) R0·R1만. 이웃 동물 규칙(R1)보다 후보 우리로 정해진 선분을 먼저 고른다
+function forced(P, fen) {
+  const { g, cell, fix } = P, E = g.E.length, n = cell.length, st = Int8Array.from(fix), r1 = new Uint8Array(E);
+  for (let e = 0; e < E; e++) { const { a, b } = g.E[e]; if (cell[a] >= 0 && cell[b] >= 0 && cell[a] !== cell[b]) { st[e] = 1; r1[e] = 1; } }
+  for (const e of fen) if (fix[e] === -1) st[e] = 1;
+  if (P.pens) {
+    const pens = P.pens.map(q => { const inS = new Set(q.cells), bnd = []; for (const c of q.cells) for (const [nb, e] of g.adj[c]) if (!inS.has(nb)) bnd.push(e); return { inner: q.inner.map(x => x[0]), bnd }; });
+    const byCell = [...Array(n)].map(() => []); P.pens.forEach((q, i) => q.cells.forEach(c => byCell[c].push(i)));
+    for (let changed = true; changed;) {
+      changed = false;
+      const ok = pens.map(q => q.inner.every(e => st[e] !== 1) && q.bnd.every(e => st[e] !== 0));
+      for (let c = 0; c < n; c++) { const cs = byCell[c].filter(i => ok[i]); if (cs.length !== 1) continue; const q = pens[cs[0]]; for (const e of q.inner) if (st[e] < 0) { st[e] = 0; changed = true; } for (const e of q.bnd) if (st[e] < 0) { st[e] = 1; changed = true; } }
+    }
+  }
+  const want = [e => st[e] === 1 && !r1[e], e => st[e] === 1, e => P.sol[e]];
+  for (const f of want) for (let e = 0; e < E; e++) if (fix[e] === -1 && !fen.has(e) && f(e)) return e;
+  return -1;
+}
+
+// 한 줄로: 경로가 정답(또는 역순)의 앞부분이면 다음 칸 잇기, 아니면 어긋난 첫 칸부터 되돌리기
+function planLine(B) {
+  const s = B.puzzle.sol, r = s.slice().reverse(), walk = B.getState();
+  const pre = a => { let k = 0; while (k < walk.length && walk[k] === a[k]) k++; return k; };
+  const kf = pre(s), kr = pre(r), ref = kr > kf ? r : s, k = Math.max(kf, kr);
+  if (k < walk.length) return { targets: walk.slice(k), color: 'bad', action: { cut: k } };
+  return k < ref.length ? { targets: [ref[k]], color: 'hint', action: { add: ref[k] } } : null;
+}
+
+// 한붓 퍼즐: 남은 동물로 지금 한 번에 묶을 수 있는 정답 무리(없으면 아직 다 남은 첫 무리)의 외곽만 점멸. 묶기는 사람이
+function planLoop(B) {
+  const P = B.puzzle, animals = B.getState().left, left = new Set(animals.map(a => a.i)), ids = k => P.groups[k].m.map(m => P.animals.indexOf(m));
+  const whole = P.sol.filter(k => ids(k).every(i => left.has(i)));
+  const fits = k => {
+    const L = P.groups[k].L; if (polyCut(L, P.rocks, P.fences, animals)) return false;
+    const r = judge(animals, L, P.rocks), want = ids(k);
+    return r.ok && r.inside.length === want.length && r.inside.every(a => want.includes(a.i));
+  };
+  const k = whole.find(fits) ?? whole[0];
+  return k == null ? null : { targets: [P.groups[k].L], color: 'hint', action: null };
+}
+
+const PLAN = { fence: planFence, line: planLine, loop: planLoop };
+
+// 점멸 → (끊기지 않았으면) 적용. 보여 줄 게 없거나 판이 바쁘면 null
+function runHint(gameId, B) {
+  if (!B.puzzle || B.solved || B.isBusy()) return null;
+  const p = PLAN[gameId](B);
+  if (!p) return null;
+  return B.flash(p.targets, p.color, HINT_MS).then(ok => { if (ok && p.action) B.apply(p.action); return ok; });
+}
+
+// 판마다 쓴 힌트 수(같은 퍼즐 객체 = 같은 판). 판을 다시 열면 퍼즐 객체가 같을 수 있어 메인의 슬롯 h가 진짜 기록이다
+const perBoard = new WeakMap();
+let toastT = 0;
+function toast(text) {
+  const t = document.getElementById('toast'); if (!t) return;
+  t.textContent = text; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2200);
+}
+// 쿠폰 0 → false + 안내. 판이 바쁘거나 보여 줄 게 없으면 false(쿠폰 그대로). 아니면 1장 쓰고 { used, perBoard, done }
+function useHint(gameId, B = active[gameId]) {
+  if (!B) return false;
+  const rec = app.load('rec', {}), have = Number.isInteger(rec.hints) ? rec.hints : 1;
+  if (have <= 0) { toast('장을 열면 받아요'); return false; }
+  const done = runHint(gameId, B);
+  if (!done) return false;
+  rec.hints = have - 1; app.save('rec', rec);
+  const n = (perBoard.get(B.puzzle) || 0) + 1; perBoard.set(B.puzzle, n);
+  const st = window.__hub?.now?.().st ?? B.puzzle.st ?? B.puzzle.stage;
+  window.__hub?.onHintUsed?.(gameId, st, n);
+  return { used: true, perBoard: n, done };
+}
+
+// 게임별 지금 판(마지막으로 연 보드). 하네스가 boardApi 없이 useHint(gameId)로 부를 수 있게
+const active = {};
+const hook = () => { if (window.__hub && !window.__hub.useHint) window.__hub.useHint = useHint; };
+function register(gameId, B) { active[gameId] = B; hook(); }
+// main.js가 모듈 끝에서 window.__hub를 새로 만들므로 그 뒤에 건다
+queueMicrotask(hook);
+
+return { HINT_MS, runHint, useHint, register };
+})();
 __m.games_fence_board = (() => {
 // 판 그리기·입력·피드백. design/toys/h3.src.html UI 블록에서 옮김
 // 바뀐 점: 저장·기록은 콜백으로 밖에 맡김, 성공 연출은 우리 차례로 칠하기만(뜀·큰 글씨·마지막 화음 제거, 0.9초 이하·효과음 3음), 첫 판 손가락 시범 추가
 const { pensOf, deadCells, judge } = __m.games_fence_gen;
 const { audio, tone, buzz } = __m.core;
+const { runHint, register } = __m.hint;
 
 const PAL = ['#F4A97A', '#9DBBE8', '#F2A7C4', '#E6CF6A', '#B8A4E0', '#8FD0B8'];
 const GRASS = ['#DCE9B8', '#D3E2AA'];   // 칸 바둑무늬. build.py 에셋 보고서가 PAL과 함께 읽는다
@@ -652,13 +1002,13 @@ const OUT = .8;
 function createBoard(B, cb) {
   B.innerHTML = '<canvas id="cv"></canvas><div class="hand" hidden><svg viewBox="0 0 40 52"><path d="M14 4a4 4 0 0 1 8 0v18l2-1a4 4 0 0 1 4 1l1 1a4 4 0 0 1 5 3v12c0 7-5 12-12 12h-2c-5 0-8-3-10-7L4 32a4 4 0 0 1 6-5l4 4z"/></svg></div>';
   const cv = B.querySelector('canvas'), cx = cv.getContext('2d'), hand = B.querySelector('.hand');
-  let P, g, fen, dead, done = [], animals = [], solved = 0, solveT = 0, boardMs = 0, lastAct = 0, drag = null, S = 0, H = 0, pad = 0, cs = 0, raf = 0, demo = null, timers = [];
+  let P, g, fen, dead, done = [], animals = [], hl = null, solved = 0, solveT = 0, boardMs = 0, lastAct = 0, drag = null, S = 0, H = 0, pad = 0, cs = 0, raf = 0, demo = null, timers = [];
   const eff = e => P.fix[e] === 1 || (P.fix[e] !== 0 && fen[e] === 1);
   const vx = v => pad + v % (P.C + 1) * cs, vy = v => pad + (v / (P.C + 1) | 0) * cs;
   const list = () => { const o = []; fen.forEach((f, e) => { if (f) o.push(e); }); return o; };
 
   function open(p, fenList, ms, withDemo) {
-    timers.forEach(clearTimeout); timers = [];
+    timers.forEach(clearTimeout); timers = []; endHint(false);
     P = p; g = P.g; P.pens = pensOf(g, P.N, P.cell, P.fix); fen = new Int8Array(g.E.length);
     shape();
     for (const e of fenList || []) if (P.fix[e] === -1) fen[e] = 1;
@@ -722,12 +1072,12 @@ function createBoard(B, cb) {
     audio(); stopDemo();
     B.setPointerCapture(e.pointerId); act(); drag = { id: e.pointerId, p, v: nearV(p).v, mode: null, moved: false };
   }
-  B.addEventListener('pointerdown', e => { if (drag) other(); else if (P && !solved) begin(e, pos(e)); });
+  B.addEventListener('pointerdown', e => { if (drag) other(); else if (P && !solved && !hl) begin(e, pos(e)); });
   // 판 테두리 밖 OUT칸 안에서 시작한 끌기는 가장 가까운 테두리 점에서 시작한 것으로 본다(#b 밖이라 문서에서 받는다)
   document.addEventListener('pointerdown', e => {
     if (B.contains(e.target)) return;
     if (drag) return other();
-    if (!P || solved || !raf || e.target.closest('button')) return;
+    if (!P || solved || hl || !raf || e.target.closest('button')) return;
     const p = pos(e), ox = Math.max(pad - p.x, p.x - pad - P.C * cs, 0), oy = Math.max(pad - p.y, p.y - pad - P.R * cs, 0);
     if (Math.max(ox, oy) > cs * OUT) return;
     const v = nearV(p).v; begin(e, { x: vx(v), y: vy(v) });
@@ -778,9 +1128,18 @@ function createBoard(B, cb) {
     buzz(10); WIN.forEach((f, i) => timers.push(setTimeout(() => tone(f, .22, 'triangle', .13), i * STEP)));
   }
   function clear() {
-    if (!P || solved || !fen.some(x => x)) return;
+    if (!P || solved || hl || !fen.some(x => x)) return;
     fen.fill(0); update(); tone(220, .15, 'sine', .08); cb.onEdit([], boardMs);
   }
+
+  // 힌트(src/hint.js가 고르고 부른다): targets = 선분 번호 목록, color 'bad' 빨강 / 그 밖 노랑. 점멸 중엔 입력을 받지 않는다
+  function flash(targets, color, ms) {
+    stopDemo();
+    return new Promise(res => { hl = { es: targets, bad: color === 'bad', ms, t0: performance.now(), res, t: setTimeout(() => { hl = null; res(true); }, ms) }; });
+  }
+  function endHint(v) { if (!hl) return; clearTimeout(hl.t); const r = hl.res; hl = null; r(v); }
+  // 손으로 긋기·지우기와 같은 길: setE → 저장(onEdit) → 판정
+  function apply({ e, on }) { const ch = setE(e, on); if (!solved) cb.onEdit(list(), boardMs); check(); return ch; }
 
   function seg(ax, ay, bx, by, c, w, hi) {
     cx.lineCap = 'round'; cx.strokeStyle = c; cx.lineWidth = w; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx, by); cx.stroke();
@@ -831,6 +1190,7 @@ function createBoard(B, cb) {
     });
     const fw = Math.max(5, cs * .11);
     g.E.forEach((e, i) => { if (eff(i)) seg(vx(e.p), vy(e.p), vx(e.q), vy(e.q), P.fix[i] === 1 ? '#5A3A1C' : '#9A6332', fw, P.fix[i] === 1 ? '#8A6040' : '#C99060'); });
+    if (hl) { const k = (t - hl.t0) / hl.ms; cx.globalAlpha = .25 + .75 * (.5 + .5 * Math.cos(k * Math.PI * 6)); for (const i of hl.es) { const e = g.E[i]; seg(vx(e.p), vy(e.p), vx(e.q), vy(e.q), hl.bad ? '#E8563F' : '#F6C64A', fw * 1.5); } cx.globalAlpha = 1; }
     if (demo) drawDemo(t, fw);
     const L = pad + P.C * cs, Bt = pad + P.R * cs; cx.strokeStyle = '#5A3A1C'; cx.lineWidth = fw; cx.lineJoin = 'round'; cx.strokeRect(pad, pad, L - pad, Bt - pad);
     for (let v = 0; v < (P.R + 1) * (P.C + 1); v++) { cx.fillStyle = '#3A2A1C66'; cx.beginPath(); cx.arc(vx(v), vy(v), 2.6, 0, 6.3); cx.fill(); }
@@ -842,7 +1202,13 @@ function createBoard(B, cb) {
   function start() { if (!P) return; fit(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
   function stop() { cancelAnimationFrame(raf); raf = 0; drag = null; lastAct = 0; }
   addEventListener('resize', () => { if (raf) fit(); });
-  return { open, start, stop, clear, get solved() { return !!solved; }, get ms() { return boardMs; } };
+  const api = {
+    open, start, stop, clear, flash, apply, hint: () => runHint('fence', api),
+    getState: list, isBusy: () => !!hl || !!drag,
+    get puzzle() { return P; }, get solved() { return !!solved; }, get ms() { return boardMs; },
+  };
+  register('fence', api);
+  return api;
 }
 
 return { createBoard };
@@ -969,7 +1335,11 @@ const game = {
 return { game };
 })();
 __m.games_line_gen = (() => {
-// 한 줄로 생성기: design/toys/h2.src.html PURE 블록 그대로(시드 = 판 번호, 유일해). 바꾸지 말 것
+// 한 줄로 생성기: design/toys/h2.src.html PURE 블록(시드 = 판 번호, 유일해)에 40판 사다리와 난이도 띠(difficulty·band)를 더했다.
+// 판을 바꾸는 변경이면 같은 판 번호의 판이 달라진다 → GEN_VER를 올릴 것. 2: 40판 사다리·난이도 띠(1~8판은 1과 같음)
+const GEN_VER = 2;
+// 바로 앞 GEN_VER와 판이 같은 판 번호 상한
+const SAME_AS_PREV_MAX = 8;
 function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const DX=[0,1,0,-1];
 const DY=[-1,0,1,0];
@@ -977,11 +1347,20 @@ const EMPTY=0;
 const HOLE=1;
 const ANI=2;
 const ARROW=3;
+// ht: 구멍 판에서 호환 그래프의 해밀턴 경로 수 목표(기하로 하나만 남긴다). 클수록 순서를 기하로 읽어야 한다. 없으면 최소화
+// 9판 낙차(구멍 4개 + ht 4가 한꺼번에)를 줄이려 구멍·ht를 9·11·13판에 나눠 올리고 화살표는 16판부터
 function params(s){
   if(s<=3)return{C:5,R:6,n:4,nk:3,nf:0,cmp:false,holes:0,arrows:0,gap:[1,3]};
   if(s<=8)return{C:5,R:6,n:s<=5?5:6,nk:4,nf:3,cmp:true,holes:0,arrows:0,gap:[0,2]};
-  if(s<=15)return{C:6,R:7,n:s<=11?7:8,nk:4,nf:3,cmp:true,holes:4,arrows:0,gap:[0,2]};
-  return{C:7,R:8,n:s<=20?9:10,nk:4,nf:3,cmp:true,holes:5,arrows:3,gap:[1,3]};
+  if(s<=10)return{C:5,R:6,n:6,nk:4,nf:3,cmp:true,holes:1,arrows:0,gap:[0,2],ht:2};
+  if(s<=12)return{C:6,R:6,n:7,nk:4,nf:3,cmp:true,holes:2,arrows:0,gap:[0,2],ht:2};
+  if(s<=15)return{C:6,R:7,n:7,nk:4,nf:3,cmp:true,holes:3,arrows:0,gap:[0,2],ht:3};
+  if(s<=20)return{C:6,R:7,n:8,nk:4,nf:3,cmp:true,holes:3,arrows:2,gap:[0,2],ht:4};
+  if(s<=25)return{C:7,R:7,n:9,nk:4,nf:3,cmp:true,holes:4,arrows:3,gap:[1,3],ht:4};
+  if(s<=30)return{C:7,R:8,n:10,nk:4,nf:3,cmp:true,holes:6,arrows:3,gap:[1,3],ht:4};
+  // 8×8은 첫 구멍·화살표를 늘려야 유일해 검증(findWalk)이 판당 150ms 안에 든다
+  if(s<=35)return{C:8,R:8,n:11,nk:4,nf:3,cmp:true,holes:10,arrows:4,gap:[1,3],ht:5};
+  return{C:8,R:8,n:12,nk:4,nf:3,cmp:true,holes:11,arrows:5,gap:[1,3],ht:5};
 }
 function nb(C,R,c,d){const x=c%C+DX[d],y=(c/C|0)+DY[d];return x<0||y<0||x>=C||y>=R?-1:y*C+x}
 function compat(b,a,v){if(!b.cmp)return true;const A=b.animals[a],V=b.animals[v];return A.k===V.k||A.f===V.f}
@@ -1080,15 +1459,15 @@ function makeBoard(C,R,cmp,animals,holes=[],arrows=[]){
   return{C,R,cmp,cell,dir,aid,animals};
 }
 // 해밀턴 경로를 먼저 만들고 그 위에 동물·속성을 얹은 뒤, 풀이기가 다른 순서를 찾으면 그 길을 막는 장애물을 더해 유일해로 만든다
-function generate(stage,seed=stage,kindsAvail=4){
-  const P=params(stage),r=rng(stage*2654435761+seed*40503+12345),nk=Math.min(P.nk,kindsAvail),NC=P.C*P.R;
+function candidate(stage,P,r,nk){
+  const NC=P.C*P.R;
   for(let tries=1;;tries++){
     const gaps=[];let L=P.n;for(let i=1;i<P.n;i++){const g=P.gap[0]+(r()*(P.gap[1]-P.gap[0]+1)|0);gaps.push(g);L+=g}
     const path=saw(P.C,P.R,L,r);if(!path)continue;
     const pos=[0];gaps.forEach(g=>pos.push(pos[pos.length-1]+g+1));
     let best=null,bc=Infinity;
-    for(let t=0;t<60;t++){const a=assign(P.n,nk,P.nf,r);if(!P.cmp){best=a;break}
-      const h=hamCount(a.k,a.f),score=P.holes?Math.abs(h-4):h;if(score<bc){bc=score;best=a}}
+    for(let t=0,T=P.n>10?20:60;t<T;t++){const a=assign(P.n,nk,P.nf,r);if(!P.cmp){best=a;break}
+      const h=hamCount(a.k,a.f),score=P.ht?Math.abs(h-P.ht):h;if(score<bc){bc=score;best=a}}
     const animals=pos.map((p,i)=>({c:path[p],k:best.k[i],f:best.f[i]}));
     const b=makeBoard(P.C,P.R,P.cmp,animals),onPath=new Int8Array(NC).fill(-1);path.forEach((c,i)=>onPath[c]=i);
     const next=c=>{const v=path[onPath[c]+1];for(let d=0;d<4;d++)if(nb(P.C,P.R,c,d)===v)return d};
@@ -1115,8 +1494,75 @@ function generate(stage,seed=stage,kindsAvail=4){
     b.stage=stage;b.tries=tries;b.sol=path;b.nf=P.nf;b.nk=nk;return b;
   }
 }
+// 난이도 D = log2(1 + 헛걸음). 동물 순서를 고르는 사람 흉내 탐색(전파 A: 빈 칸으로 닿는 호환 동물만, 연결 1개짜리 동물은 끝점,
+// 남은 동물 중 막다른 동물 2마리 이상이면 버림)을 무작위 순서로 할 때, 정답 순서를 찾기까지 들르는 정답 밖 노드 수의 기댓값.
+// 정답 순서의 각 갈림에서 틀린 가지는 정답보다 먼저 고를 확률 1/2(첫 동물은 정답 끝점이 둘이라 1/3)로 그 가지 전체를 헤맨다.
+// 칸 단위 경로(지나온 칸이 길을 막음)는 보지 않으므로 순서 추론의 난이도만 잰다. 전파로 다 정해지면 0
+const D_NODES=4000, D_CAP=1e6;
+function difficulty(b){
+  if(!b.cmp)return 0;// 호환 규칙이 없으면 아무 순서나 그릴 수 있다
+  const{C,R,cell,dir,animals}=b,n=animals.length,NC=C*R,ok=[];
+  for(let a=0;a<n;a++){ok.push([]);for(let v=0;v<n;v++)ok[a].push(a!==v&&compat(b,a,v))}
+  const aid=b.aid,seen=new Uint32Array(NC),stack=new Int16Array(NC);let st=0,left=D_NODES;
+  const reach=(a,mask)=>{
+    st++;let sp=0,out=0;const s0=animals[a].c;stack[sp++]=s0;seen[s0]=st;
+    while(sp){const c=stack[--sp];for(let d=0;d<4;d++){if(cell[c]===ARROW&&dir[c]!==d)continue;const v=nb(C,R,c,d);if(v<0||seen[v]===st||cell[v]===HOLE)continue;seen[v]=st;
+      if(cell[v]===ANI){const x=aid[v];if(!(mask>>x&1)&&ok[a][x])out|=1<<x;continue}stack[sp++]=v}}
+    return out;
+  };
+  const degIn=(x,m)=>{let d=0;for(let v=0;v<n;v++)if(m>>v&1&&ok[x][v])d++;return d};
+  const full=(1<<n)-1;
+  const kids=(mask,last)=>{
+    const out=[],cand=reach(last,mask);
+    for(let x=0;x<n;x++){if(!(cand>>x&1))continue;const m=mask|1<<x,rest=full&~m;if(!rest){out.push(x);continue}
+      let dead=0,bad=!degIn(x,rest);
+      for(let r=0;r<n&&!bad;r++)if(rest>>r&1){const d=degIn(r,rest|1<<x);if(!d)bad=true;else if(d===1&&++dead>1)bad=true}
+      if(!bad)out.push(x)}
+    return out;
+  };
+  const memo=new Map();
+  const size=(mask,last)=>{
+    const key=mask*16+last;if(memo.has(key))return memo.get(key);
+    if(--left<0)return D_CAP;
+    let s=1;if(mask!==full)for(const x of kids(mask,last)){s+=size(mask|1<<x,x);if(s>=D_CAP)break}
+    s=Math.min(s,D_CAP);memo.set(key,s);return s;
+  };
+  const order=[];for(const c of b.sol)if(cell[c]===ANI)order.push(aid[c]);
+  const all=[...Array(n).keys()],d1=all.filter(a=>degIn(a,full)<=1),starts=d1.length?d1:all;
+  const ends=[order[0],order[n-1]];
+  let waste=0;
+  for(const s of starts)if(!ends.includes(s))waste+=size(1<<s,s)/3;
+  for(const o of [order,order.slice().reverse()]){
+    if(!starts.includes(o[0]))continue;
+    let w=0,mask=1<<o[0];
+    for(let i=1;i<n;i++){for(const x of kids(mask,o[i-1]))if(x!==o[i])w+=size(mask|1<<x,x)/2;mask|=1<<o[i]}
+    waste+=w/(starts.includes(order[0])&&starts.includes(order[n-1])?2:1);
+  }
+  return Math.log2(1+waste);
+}
+// 난이도 띠 [lo, hi]: 구간 시작 판의 띠에서 다음 구간 시작 판의 띠로 판 번호에 따라 선형으로 오른다. 1~8판은 띠 없음(GEN_VER 1과 같은 판)
+const BANDS=[[9,[0,.5]],[11,[1,2.6]],[16,[2.3,3.8]],[21,[3.6,5.4]],[26,[5,7]],[31,[6.4,9]],[36,[7.4,10.2]],[41,[8.4,11]]];
+function band(st){
+  if(st<BANDS[0][0])return null;
+  const i=Math.max(0,BANDS.findIndex(([a],j)=>j+1<BANDS.length&&st>=a&&st<BANDS[j+1][0]));
+  if(st>=BANDS[BANDS.length-1][0])return BANDS[BANDS.length-1][1].slice();
+  const[a,b0]=BANDS[i],[z,b1]=BANDS[i+1],t=(st-a)/(z-a);
+  return[b0[0]+t*(b1[0]-b0[0]),b0[1]+t*(b1[1]-b0[1])];
+}
+// 띠 안에 드는 후보가 나올 때까지 다시 만든다. MAKE_TRIES개 안에 없으면 띠에 가장 가까운 후보. rng를 이어 쓰므로 첫 후보 = 옛 판
+const MAKE_TRIES=4;
+function generate(stage,seed=stage,kindsAvail=4){
+  const P=params(stage),r=rng(stage*2654435761+seed*40503+12345),nk=Math.min(P.nk,kindsAvail),B=band(stage);
+  if(!B)return candidate(stage,P,r,nk);
+  let best=null,bd=Infinity;
+  for(let i=0;i<MAKE_TRIES&&bd>0;i++){
+    const b=candidate(stage,P,r,nk),x=difficulty(b),d=x<B[0]?B[0]-x:x>B[1]?x-B[1]:0;
+    if(d<bd){bd=d;best=b;b.D=x;b.cand=i+1}
+  }
+  return best;
+}
 
-return { rng, DX, DY, EMPTY, HOLE, ANI, ARROW, params, nb, compat, saw, assign, hamCount, ZOB, findWalk, countSolutions, makeBoard, generate };
+return { GEN_VER, SAME_AS_PREV_MAX, rng, DX, DY, EMPTY, HOLE, ANI, ARROW, params, nb, compat, saw, assign, hamCount, ZOB, findWalk, countSolutions, makeBoard, candidate, D_NODES, difficulty, BANDS, band, MAKE_TRIES, generate };
 })();
 __m.games_line_board = (() => {
 // 한 줄로 판: design/toys/h2.src.html UI에서 옮김
@@ -1124,6 +1570,7 @@ __m.games_line_board = (() => {
 // 막힘 표시(도달 못 하는 동물 + 갈 곳이 1칸 이하인 막다른 동물이 2마리 이상이면 그 동물을 빨갛게), "풀었다!"·입자 제거
 const { compat, nb, HOLE, ANI, ARROW } = __m.games_line_gen;
 const { audio, tone, buzz } = __m.core;
+const { runHint, register } = __m.hint;
 
 const CS = 60, IDLE = 15000;
 const FLOOR = ['#93C267', '#EBD9A6', '#CF9A45'];   // 풀·모래·짚. 무늬(민·점·빗금)로 색약 대비
@@ -1134,7 +1581,7 @@ const note = i => 392 * 2 ** (SCALE[Math.max(0, Math.min(i, SCALE.length - 1))] 
 function createBoard(B, cb) {
   B.innerHTML = '<canvas></canvas><div class="lcnt"></div>';
   const cv = B.querySelector('canvas'), cx = cv.getContext('2d'), cntEl = B.querySelector('.lcnt');
-  let bd = null, els = [], walk = [], drawing = false, ptr = null, solved = false, winT = 0, boardMs = 0, lastAct = 0, raf = 0, W = 300, H = 360, flash = null, dead = new Set();
+  let bd = null, els = [], walk = [], drawing = false, ptr = null, solved = false, winT = 0, boardMs = 0, lastAct = 0, raf = 0, W = 300, H = 360, flash = null, dead = new Set(), hl = null;
 
   const ctr = c => ({ x: (c % bd.C + .5) * CS, y: ((c / bd.C | 0) + .5) * CS });
   const order = () => walk.filter(c => bd.cell[c] === ANI).map(c => bd.aid[c]);
@@ -1150,6 +1597,7 @@ function createBoard(B, cb) {
   }
 
   function open(P, saved, ms) {
+    endHint(false);
     bd = P; W = bd.C * CS; H = bd.R * CS;
     Object.assign(B.style, { aspectRatio: bd.C + '/' + bd.R, width: '', margin: '' });
     els.forEach(e => e.remove());
@@ -1214,7 +1662,7 @@ function createBoard(B, cb) {
   function act() { const n = performance.now(); if (lastAct && n - lastAct < IDLE) { boardMs += n - lastAct; cb.onPlay(n - lastAct); } lastAct = n; }
 
   B.addEventListener('pointerdown', e => {
-    if (!bd || solved || drawing) return;
+    if (!bd || solved || drawing || hl) return;
     audio(); act();
     const p = pos(e), c = cellAt(p, .5); if (c < 0) return;
     const i = walk.indexOf(c);
@@ -1256,6 +1704,18 @@ function createBoard(B, cb) {
     tone(160, .12, 'square', .05); buzz(20);
   }
 
+  // 힌트(src/hint.js가 고르고 부른다): targets = 칸 번호 목록, color 'bad' 빨강 / 그 밖 노랑. 점멸 중엔 입력을 받지 않는다
+  function blink(targets, color, ms) {
+    return new Promise(res => { hl = { cells: targets, bad: color === 'bad', ms, t0: performance.now(), res, t: setTimeout(() => { hl = null; res(true); }, ms) }; });
+  }
+  // 손으로 잇기·되짚기와 같은 길: 경로 바꾸기 → update(판정) → 저장. { add: 칸 } 다음 칸 잇기 / { cut: k } k칸만 남기기
+  function apply(a) {
+    if (a.cut != null) { if (a.cut >= walk.length) return false; walk.length = a.cut; tone(300, .04, 'sine', .04); }
+    else if (!walk.length ? bd.cell[a.add] === ANI : canGo(walk[walk.length - 1], a.add)) { walk.push(a.add); tone(note(order().length), .14, 'triangle', .11); }
+    else return false;
+    update(); if (!solved) cb.onEdit(walk.slice(), boardMs); return true;
+  }
+  function endHint(v) { if (!hl) return; clearTimeout(hl.t); const r = hl.res; hl = null; r(v); }
   function rr(x, y, w, h, r) { cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
   function floorTile(c, f) {
     const x = (c % bd.C) * CS, y = (c / bd.C | 0) * CS, col = f < 0 ? NEUTRAL : FLOOR[f];
@@ -1300,6 +1760,11 @@ function createBoard(B, cb) {
     cx.clearRect(0, 0, W, H);
     drawBoard();
     if (solved) { const k = Math.min(1, (performance.now() - winT) / 600); cx.shadowColor = '#FFF6A0'; cx.shadowBlur = 18 * k; drawWalk(); cx.shadowBlur = 0; } else drawWalk();
+    if (hl) {
+      const k = (performance.now() - hl.t0) / hl.ms; cx.globalAlpha = .25 + .75 * (.5 + .5 * Math.cos(k * Math.PI * 6));
+      for (const c of hl.cells) { const q = ctr(c); rr(q.x - CS / 2 + 4, q.y - CS / 2 + 4, CS - 8, CS - 8, 12); cx.strokeStyle = hl.bad ? RED : '#F6C64A'; cx.lineWidth = 6; cx.stroke(); }
+      cx.globalAlpha = 1;
+    }
     if (flash) {
       const k = (performance.now() - flash.t) / 450;
       if (k >= 1) flash = null;
@@ -1309,16 +1774,22 @@ function createBoard(B, cb) {
   }
   function start() { if (!bd) return; fit(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
   function stop() { cancelAnimationFrame(raf); raf = 0; drawing = false; lastAct = 0; }
-  function clear() { if (solved) return; walk = []; drawing = false; flash = null; update(); cb.onEdit([], boardMs); }
+  function clear() { if (solved || hl) return; walk = []; drawing = false; flash = null; update(); cb.onEdit([], boardMs); }
   addEventListener('resize', () => { if (raf) fit(); });
-  return { open, start, stop, clear, get solved() { return solved; }, get ms() { return boardMs; }, get walk() { return walk.slice(); } };
+  const api = {
+    open, start, stop, clear, flash: blink, apply, hint: () => runHint('line', api),
+    getState: () => walk.slice(), isBusy: () => !!hl || drawing,
+    get puzzle() { return bd; }, get solved() { return solved; }, get ms() { return boardMs; }, get walk() { return walk.slice(); },
+  };
+  register('line', api);
+  return api;
 }
 
 return { createBoard };
 })();
 __m.games_line_index = (() => {
-// 한 줄로 게임 모듈. 생성기는 h2 그대로(판 번호 = 시드, 유일해). 사다리는 h2 구간(16판부터 같은 구간 반복)
-const { generate } = __m.games_line_gen;
+// 한 줄로 게임 모듈. 생성기는 h2 기반(판 번호 = 시드, 유일해). 사다리는 gen.params(40판까지 난이도 띠)
+const { generate, params, GEN_VER, SAME_AS_PREV_MAX } = __m.games_line_gen;
 const { createBoard } = __m.games_line_board;
 const S = (b, w = 48) => `<svg viewBox="0 0 ${w} 48" aria-hidden="true">${b}</svg>`;
 const tile = (x, y, c, pat) => `<rect x="${x}" y="${y}" width="18" height="18" rx="5" fill="${c}" stroke="#0002" stroke-width="1.5"/>` + (pat === 1 ? `<circle cx="${x + 9}" cy="${y + 9}" r="2.5" fill="#fff9"/>` : pat === 2 ? `<path d="M${x + 3} ${y + 15}L${x + 15} ${y + 3}" stroke="#fff9" stroke-width="3"/>` : '');
@@ -1326,18 +1797,18 @@ const grid = (c, r) => { const w = 34 / Math.max(c, r), W = w * c, H = w * r, x0
 const RULE = '손을 떼지 않고 한 줄로 모든 동물을 지나요';   // 규칙 한 줄(판 아래 tip 첫머리·장 미리 보기)
 const game = {
   id: 'line', title: '한 줄로', prefix: 'g.line.',
-  GEN_VER: 1, SAME_AS_PREV_MAX: 0, kinds: 4,
+  GEN_VER, SAME_AS_PREV_MAX, kinds: 4,
   gen: (st, seed) => generate(st, seed, 4),
   daily: { st: 12 },
-  lap: { tiers: [{ key: 1, label: '5×6', st: 7, unlock: 4 }, { key: 2, label: '6×7', st: 12, unlock: 9 }, { key: 3, label: '7×8', st: 19, unlock: 16 }] },
-  ladderInfo: st => ({ size: st <= 8 ? '5×6' : st <= 15 ? '6×7' : '7×8' }),
+  lap: { tiers: [{ key: 1, label: '5×6', st: 7, unlock: 4 }, { key: 2, label: '6×6', st: 12, unlock: 9 }, { key: 3, label: '6×7', st: 19, unlock: 16 }] },
+  ladderInfo: st => { const p = params(st); return { size: p.C + '×' + p.R }; },
   animalAt: i => i < 3 ? 1 : i < 4 ? 4 : null,
   book: () => [
     { g: '단서', items: [
       { label: '바닥색', at: 4, icon: S(tile(4, 15, '#93C267', 0) + tile(15, 15, '#EBD9A6', 1) + tile(26, 15, '#CF9A45', 2)) },
       { label: '웅덩이', at: 9, icon: S('<rect x="10" y="10" width="28" height="28" rx="8" fill="#6E8FA6"/><rect x="15" y="16" width="18" height="18" rx="6" fill="#4F6F86"/>') },
       { label: '한쪽 길', at: 16, icon: S('<rect x="8" y="8" width="32" height="32" rx="8" fill="#E4C9A4"/><path d="M15 29L24 19L33 29" fill="none" stroke="#8A5A30" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>') }] },
-    { g: '판 크기', items: [{ label: '5×6', at: 1, icon: grid(5, 6) }, { label: '6×7', at: 9, icon: grid(6, 7) }, { label: '7×8', at: 16, icon: grid(7, 8) }] },
+    { g: '판 크기', items: [{ label: '5×6', at: 1, icon: grid(5, 6) }, { label: '6×6', at: 11, icon: grid(6, 6) }, { label: '6×7', at: 13, icon: grid(6, 7) }, { label: '7×7', at: 21, icon: grid(7, 7) }, { label: '7×8', at: 26, icon: grid(7, 8) }, { label: '8×8', at: 31, icon: grid(8, 8) }] },
   ],
   head: P => `동물 <b>${P.animals.length}</b>마리`,
   rule: RULE,
@@ -1349,205 +1820,12 @@ const game = {
 
 return { game };
 })();
-__m.games_loop_gen = (() => {
-// 한붓 퍼즐 생성기: design/toys/h1.src.html PURE 블록 그대로. 바꾸지 말 것
-const W=360;
-const H=432;
-const PAD=28;
-const MIN_D=52;
-const M=26;
-const CL=22;
-const RR=17;
-const AR=20;
-const EA=2*AR;
-const EO=AR;
-function rng(s){return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const RF=(r,a,b)=>a+r()*(b-a);
-const RI=(r,a,b)=>a+Math.floor(r()*(b-a+1));
-function inPoly(x,y,p){let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)c=!c}return c}
-function area(p){let s=0;for(let i=0,j=p.length-1;i<p.length;j=i++)s+=(p[j].x+p[i].x)*(p[j].y-p[i].y);return Math.abs(s/2)}
-function tooShort(p){return p.length<6||area(p)<900}
-function hull(ps){
-  const p=ps.slice().sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
-  if(p.length<3)return p;const lo=[],up=[];
-  for(const q of p){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}
-  for(let i=p.length-1;i>=0;i--){const q=p[i];while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
-  return lo.slice(0,-1).concat(up.slice(0,-1));
-}
-function dPS(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l)):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
-function segX(a,b,c,d){const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));return o(a,b,c)*o(a,b,d)<=0&&o(c,d,a)*o(c,d,b)<=0&&Math.max(a.x,b.x)>=Math.min(c.x,d.x)&&Math.max(c.x,d.x)>=Math.min(a.x,b.x)&&Math.max(a.y,b.y)>=Math.min(c.y,d.y)&&Math.max(c.y,d.y)>=Math.min(a.y,b.y)}
-function dSS(a,b,c,d){return segX(a,b,c,d)?0:Math.min(dPS(a,c,d),dPS(b,c,d),dPS(c,a,b),dPS(d,a,b))}
-const edges=h=>h.length<2?[[h[0],h[0]]]:h.length===2?[[h[0],h[1]]]:h.map((q,i)=>[q,h[(i+1)%h.length]]);
-function dHull(p,h){return h.length>2&&inPoly(p.x,p.y,h)?0:Math.min(...edges(h).map(([a,b])=>dPS(p,a,b)))}
-function dSegHull(a,b,h){return h.length>2&&(inPoly(a.x,a.y,h)||inPoly(b.x,b.y,h))?0:Math.min(...edges(h).map(([c,d])=>dSS(a,b,c,d)))}
-function inflate(ps,r){const q=[];for(const p of ps)for(let i=0;i<16;i++){const t=i*Math.PI/8;q.push({x:p.x+r*Math.cos(t),y:p.y+r*Math.sin(t)})}return hull(q)}
-// 바위가 올가미 안에 들어가도 무효. 판정은 동물/바위 중심점 기준.
-function judge(animals,p,rocks=[]){
-  const inside=animals.filter(a=>inPoly(a.x,a.y,p)),rin=rocks.filter(k=>inPoly(k.x,k.y,p)),cnt={};
-  inside.forEach(a=>cnt[a.kind]=(cnt[a.kind]||0)+1);
-  const kinds=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]),mixed=kinds.length>1;
-  return{ok:inside.length>=2&&!mixed&&!rin.length,inside,mixed,rin,wrong:mixed?inside.filter(a=>a.kind!=kinds[0]):inside.length===1?inside:[]};
-}
-// 선분 a→b가 바위(반지름 RR)·동물(반지름 AR) 위를 지나거나 울타리를 가로지르면 그것을 돌려준다
-function cutAt(a,b,rocks,fences,animals=[]){
-  for(const k of rocks)if(dPS(k,a,b)<RR)return{k:'rock',o:k};
-  for(const o of animals)if(dPS(o,a,b)<AR)return{k:'animal',o};
-  for(const f of fences)if(dSS(a,b,f.a,f.b)<3)return{k:'fence',o:f};
-  return null;
-}
-function polyCut(p,rocks,fences,animals){for(let i=0;i<p.length;i++){const c=cutAt(p[i],p[(i+1)%p.length],rocks,fences,animals);if(c)return c}return null}
-// 볼록 올가미로 sub만 감쌀 수 있는가. 선은 동물 위를 못 지나므로 올가미는 최소 hull(sub)+AR,
-// 다른 동물은 그 바깥으로 AR 이상(=껍질에서 EA 초과) 떨어져 있어야 한다.
-function free(sub,others,rocks,fences){
-  const h=hull(sub);
-  return others.every(o=>dHull(o,h)>EA)&&rocks.every(k=>dHull(k,h)>EO+RR)&&fences.every(f=>dSegHull(f.a,f.b,h)>EO);
-}
-const TIERS=[
-  {g:[2,3],s:[2,3],rk:[0,0],fc:0,rep:[0,0],pr:[0,0],free:9},
-  {g:[3,4],s:[2,3],rk:[1,2],fc:0,rep:[1,1],pr:[1,1],free:2},
-  {g:[4,5],s:[2,4],rk:[1,2],fc:1,rep:[1,2],pr:[1,2],free:1},
-  {g:[5,6],s:[2,4],rk:[0,2],fc:2,rep:[2,2],pr:[2,9],free:1}];
-const tierOf=n=>n<=3?0:n<=8?1:n<=15?2:3;
-const inB=(p,m)=>p.x>=m&&p.x<=W-m&&p.y>=m&&p.y<=H-m;
-// 역방향 생성: 묶음을 하나씩 놓되 새 묶음의 올가미는 이미 놓인 동물을 피한다. 놓은 순서의 역순이 해법.
-function tryGen(T,K,G,r){
-  const groups=[],animals=[],blocked=[];
-  // 종류를 다시 쓸 자리(같은 종류 두 묶음)를 미리 정한다
-  const repK=new Set();for(let n=Math.max(RI(r,...T.rep),G-K);repK.size<Math.min(n,G-1);)repK.add(RI(r,1,G-1));
-  for(let k=0;k<G;k++){
-    const hs=groups.map(g=>hull(g.m)),un=groups.map((_,j)=>j).filter(j=>!blocked[j]),used=new Set(groups.map(g=>g.kind));
-    let best=null,bs=-1;
-    // 후보 묶음을 여럿 만들어 아직 안 막힌 앞 묶음을 가장 많이 막는 것을 고른다
-    for(let t=0;t<60;t++){
-      const size=RI(r,...T.s),mem=[],tg=k&&r()<.85?(un.length?un[RI(r,0,un.length-1)]:RI(r,0,k-1)):-1;
-      const okP=p=>inB(p,PAD)&&animals.concat(mem).every(o=>Math.hypot(o.x-p.x,o.y-p.y)>=MIN_D);
-      if(tg<0){const p={x:RF(r,PAD,W-PAD),y:RF(r,PAD,H-PAD)};if(okP(p))mem.push(p)}
-      else{
-        const tm=groups[tg].m;
-        for(let i=0;i<20&&!mem.length;i++){
-          const w=tm.length>2?tm.map(()=>r()):[RF(r,.3,.7)].map(u=>[u,1-u])[0],s=w.reduce((a,b)=>a+b),j=30;
-          const p={x:tm.reduce((a,q,i)=>a+q.x*w[i],0)/s+RF(r,-j,j),y:tm.reduce((a,q,i)=>a+q.y*w[i],0)/s+RF(r,-j,j)};
-          if(dHull(p,hs[tg])<=EA-8&&okP(p))mem.push(p);
-        }
-      }
-      for(let i=0;i<60&&mem.length&&mem.length<size;i++){
-        const b=mem[RI(r,0,mem.length-1)],a=RF(r,0,6.283),d=RF(r,64,150),p={x:b.x+d*Math.cos(a),y:b.y+d*Math.sin(a)};
-        if(okP(p))mem.push(p);
-      }
-      if(mem.length<2)continue;
-      const L=inflate(mem,M);
-      if(!L.every(q=>inB(q,2)))continue;
-      if(!animals.every(a=>!inPoly(a.x,a.y,L)&&dHull(a,L)>=CL))continue;
-      // 껍질에서 EA 안에 있으면 선이 그 동물을 피해 이 묶음을 감쌀 수 없다
-      const hit=hs.map(h=>mem.some(p=>dHull(p,h)<=EA-4));
-      // 가까운 묶음과 같은 종류면 한 번에 묶여 버리므로 피한다
-      const ban=new Set(groups.filter((g,j)=>mem.some(p=>dHull(p,hs[j])<=EA+30)).map(g=>g.kind));
-      const fresh=[...Array(K).keys()].filter(c=>!used.has(c)&&!ban.has(c)),old=[...used].filter(c=>!ban.has(c));
-      const pool=repK.has(k)?old:fresh.length?fresh:old;if(!pool.length)continue;
-      // 동물 전체 무게중심이 판 중앙에서 15% 넘게 벗어나면 감점(한쪽에 몰린 판 방지)
-      const all=animals.concat(mem),off=Math.hypot(all.reduce((a,q)=>a+q.x,0)/all.length/W-.5,all.reduce((a,q)=>a+q.y,0)/all.length/H-.5);
-      const s=un.filter(j=>hit[j]).length*10+hit.filter(Boolean).length+r()-(off>.15?(off-.15)*60:0);
-      if(s>bs){
-        // 종류를 다시 쓸 땐 같은 종류 묶음과 멀리 떨어뜨려 사이에 장애물이 들어갈 틈을 만든다
-        const far=c=>Math.min(...animals.filter(a=>a.kind===c).flatMap(a=>mem.map(p=>Math.hypot(a.x-p.x,a.y-p.y))),1e9);
-        const kind=pool===fresh?pool[RI(r,0,pool.length-1)]:pool.reduce((x,y)=>far(y)>far(x)?y:x);
-        bs=s;best={mem,L,hit,kind}}
-    }
-    if(!best)return null;
-    best.hit.forEach((h,j)=>{if(h)blocked[j]=true});
-    const kind=best.kind,g={kind,m:best.mem.map(p=>({x:p.x,y:p.y,kind,g:k})),L:best.L};groups.push(g);animals.push(...g.m);
-  }
-  const pairs=[];groups.forEach((a,i)=>groups.forEach((b,j)=>{if(i<j&&a.kind===b.kind)pairs.push([a,b])}));
-  if(pairs.length<T.pr[0]||pairs.length>T.pr[1])return null;
-  const rocks=[],fences=[],Ls=groups.map(g=>g.L),AH=hull(animals);
-  // 같은 종류 분리를 최우선, 다음으로 동물 무리 안쪽에 들어와 실제로 길을 막는 위치를 고른다
-  const unsep=()=>pairs.filter(([a,b])=>free(a.m.concat(b.m),[],rocks,fences));
-  const pick=(cand,score,n)=>{let best=null,bs=-1;for(let i=0;i<n;i++){const c=cand();if(!c)continue;const s=score(c);if(s>bs){bs=s;best=c}}return best};
-  for(let i=0;i<T.fc;i++){
-    const f=pick(()=>{
-      const side=RI(r,0,3),t=RF(r,.15,.85),ang=[0,Math.PI,Math.PI/2,-Math.PI/2][side]+RF(r,-.6,.6),len=RF(r,90,200);
-      const a=[{x:-8,y:t*H},{x:W+8,y:t*H},{x:t*W,y:-8},{x:t*W,y:H+8}][side],b={x:a.x+len*Math.cos(ang),y:a.y+len*Math.sin(ang)};
-      if(!inB(b,PAD))return null;
-      if(!Ls.every(L=>dSegHull(a,b,L)>=8))return null;
-      if(!animals.every(o=>dPS(o,a,b)>=30))return null;
-      if(!fences.every(g=>dSS(a,b,g.a,g.b)>=40))return null;
-      return{a,b};
-    },f=>{fences.push(f);const s=pairs.length-unsep().length;fences.pop();let n=0;for(let i=0;i<=10;i++)if(dHull({x:f.a.x+(f.b.x-f.a.x)*i/10,y:f.a.y+(f.b.y-f.a.y)*i/10},AH)<=10)n++;return s*10+n/2+r()},120);
-    if(!f)return null;fences.push(f);
-  }
-  const nr=RI(r,...T.rk);
-  for(let i=0;i<nr;i++){
-    const k=pick(()=>{
-      const c={x:RF(r,PAD,W-PAD),y:RF(r,PAD,H-PAD)};
-      if(!animals.every(o=>Math.hypot(o.x-c.x,o.y-c.y)>=38))return null;
-      if(!Ls.every(L=>!inPoly(c.x,c.y,L)&&dHull(c,L)>=RR+6))return null;
-      if(!fences.every(f=>dPS(c,f.a,f.b)>=RR+14)||!rocks.every(o=>Math.hypot(o.x-c.x,o.y-c.y)>=60))return null;
-      return c;
-    },c=>{rocks.push(c);const s=pairs.length-unsep().length;rocks.pop();const d=Math.min(...Ls.map(L=>dHull(c,L)));return s*10+(dHull(c,AH)<=0?4:0)+(d<RR+26?2:0)+r()},120);
-    if(!k)return null;rocks.push(k);
-  }
-  const nFree=groups.filter(g=>free(g.m,animals.filter(a=>!g.m.includes(a)),rocks,fences)).length;
-  if(nFree>T.free)return null;
-  return{animals,groups,rocks,fences,par:G,sol:groups.map((_,i)=>G-1-i)};
-}
-// 해법 순서대로 볼록 올가미(묶음을 M만큼 부풀린 껍질)를 적용해 전부 사라지는지 확인
-function verify(b){
-  let rem=b.animals.slice();
-  for(const k of b.sol){
-    const g=b.groups[k],L=g.L;
-    if(polyCut(L,b.rocks,b.fences,rem))return{ok:false,why:'cut',k};
-    const j=judge(rem,L,b.rocks);
-    if(!j.ok||j.inside.length!==g.m.length||!g.m.every(a=>j.inside.includes(a)))return{ok:false,why:'judge',k};
-    rem=rem.filter(a=>!g.m.includes(a));
-    if(!rem.every(a=>dHull(a,L)>=CL))return{ok:false,why:'margin',k};
-  }
-  return{ok:!rem.length,why:rem.length?'left':''};
-}
-// 낙관적 볼록 올가미 모델에서 limit 수 안에 다 없앨 수 있는가(파가 최적인지 확인용). 탐색 예산을 넘으면 null.
-// 부분집합마다 "막는 동물 비트마스크"를 한 번만 계산해 두면 탐색 중 판정은 비트 연산 하나다.
-function solvable(b,limit,budget=200000){
-  const A=b.animals,n=A.length,memo=new Map(),blk=new Map();let left=budget;
-  const blockers=sm=>{
-    if(blk.has(sm))return blk.get(sm);
-    const sub=[];for(let i=0;i<n;i++)if(sm>>i&1)sub.push(A[i]);
-    const h=hull(sub);let v=-1;
-    if(b.rocks.every(k=>dHull(k,h)>EO+RR)&&b.fences.every(f=>dSegHull(f.a,f.b,h)>EO)){v=0;for(let i=0;i<n;i++)if(!(sm>>i&1)&&dHull(A[i],h)<=EA)v|=1<<i}
-    blk.set(sm,v);return v;
-  };
-  function go(mask,d){
-    if(!mask)return true;
-    if(--left<0)throw 0;
-    const byK={};for(let i=0;i<n;i++)if(mask>>i&1)(byK[A[i].kind]=byK[A[i].kind]||[]).push(i);
-    const ks=Object.values(byK);if(ks.some(v=>v.length<2)||ks.length>d)return false;
-    if((memo.get(mask)??-1)>=d)return false;
-    for(const v of ks){
-      const subs=[];for(let s=1;s<1<<v.length;s++){let c=0,sm=0;v.forEach((i,j)=>{if(s>>j&1){c++;sm|=1<<i}});if(c>=2)subs.push([sm,c])}
-      subs.sort((x,y)=>y[1]-x[1]);
-      for(const [sm] of subs){const bl=blockers(sm);if(bl>=0&&!(bl&mask)&&go(mask&~sm,d-1))return true}
-    }
-    memo.set(mask,d);return false;
-  }
-  try{return go((1<<n)-1,limit)}catch(e){if(e===0)return null;throw e}
-}
-// 시도 하나마다 yield 해서 브라우저가 프레임을 나눠 미리 만들 수 있게 한다
-function* genIter(n,K,seed=n){
-  const r=rng(n*7919+seed*104729+1),T=TIERS[tierOf(n)],G=RI(r,...T.g);
-  for(let t=0;t<20000;t++){
-    const b=tryGen(T,K,G,r);
-    if(b&&verify(b).ok&&solvable(b,b.par-1)===false)return Object.assign(b,{n,seed,tries:t+1});
-    yield;
-  }
-  return null;
-}
-function gen(n,K,seed=n){const it=genIter(n,K,seed);let x;while(!(x=it.next()).done);return x.value}
-
-return { W, H, PAD, MIN_D, M, CL, RR, AR, EA, EO, rng, RF, RI, inPoly, area, tooShort, hull, dPS, segX, dSS, edges, dHull, dSegHull, inflate, judge, cutAt, polyCut, free, TIERS, tierOf, inB, tryGen, verify, solvable, genIter, gen };
-})();
 __m.games_loop_board = (() => {
 // 한붓 퍼즐 판: design/toys/h1.src.html UI에서 옮김(올가미 입력·실시간 초록/빨강·판정)
 // 바뀐 점: stuck()을 종류별 마릿수 검사에서 기하 교착 검사(solvable: blockers 모델)로, 별·입자·튀어 오르기·선 산산조각 제거(잔잔한 사라짐만)
 const { W, H, RR, AR, judge, cutAt, tooShort, solvable } = __m.games_loop_gen;
 const { audio, tone, buzz } = __m.core;
+const { runHint, register } = __m.hint;
 
 const IDLE = 15000;
 const COL = { '': '#FFF3D6', ok: '#45C46F', bad: '#E8563F', cut: '#8B8178' };
@@ -1557,7 +1835,7 @@ const note = i => 392 * 2 ** (SCALE[Math.max(0, Math.min(i, SCALE.length - 1))] 
 function createBoard(B, cb) {
   B.innerHTML = '<canvas class="bg"></canvas><canvas class="fg"></canvas><div class="lcnt"></div><div class="stk" hidden><p>더 이상 묶을 수 없어요</p><button class="sub">다시</button></div>';
   const bg = B.querySelector('.bg'), bx = bg.getContext('2d'), cv = B.querySelector('.fg'), cx = cv.getContext('2d'), cntEl = B.querySelector('.lcnt'), stk = B.querySelector('.stk');
-  let P = null, animals = [], gone = [], moves = 0, pts = [], drawing = false, lineState = '', liveN = 0, solved = false, fx = [], boardMs = 0, lastAct = 0, raf = 0, lt = 0;
+  let P = null, animals = [], gone = [], moves = 0, pts = [], drawing = false, lineState = '', liveN = 0, solved = false, fx = [], boardMs = 0, lastAct = 0, raf = 0, lt = 0, hl = null;
   stk.querySelector('button').onclick = () => clear();
 
   function mk(a, i) {
@@ -1570,6 +1848,7 @@ function createBoard(B, cb) {
   }
   // saved = { g: [[동물 번호…], …] 지운 묶음 순서, m: 올가미 수 }
   function open(p, saved, ms) {
+    endHint(false);
     P = p; B.style.aspectRatio = W + '/' + H;
     animals.forEach(a => a.el.remove());
     animals = P.animals.map(mk); gone = []; moves = 0;
@@ -1612,7 +1891,7 @@ function createBoard(B, cb) {
   function pos(e) { const r = B.getBoundingClientRect(); return { x: Math.max(0, Math.min(W, (e.clientX - r.left) / r.width * W)), y: Math.max(0, Math.min(H, (e.clientY - r.top) / r.height * H)) }; }
   function act() { const n = performance.now(); if (lastAct && n - lastAct < IDLE) { boardMs += n - lastAct; cb.onPlay(n - lastAct); } lastAct = n; }
   B.addEventListener('pointerdown', e => {
-    if (!P || solved || drawing || !stk.hidden || e.target.closest('.stk')) return;
+    if (!P || solved || drawing || hl || !stk.hidden || e.target.closest('.stk')) return;
     audio(); act();
     const p = pos(e);
     if (P.rocks.some(k => Math.hypot(k.x - p.x, k.y - p.y) < RR) || animals.some(a => Math.hypot(a.x - p.x, a.y - p.y) < AR)) return;
@@ -1666,6 +1945,11 @@ function createBoard(B, cb) {
     if (!animals.length) { solved = true; ui(); saveNow(); cb.onWin(boardMs); }
     else if (stuck()) setTimeout(() => { if (!solved && P) { stk.hidden = false; tone(160, .3, 'sawtooth', .05, 0, 90); } }, 550);
   }
+  // 힌트(src/hint.js가 고르고 부른다): targets = 올가미(점 목록) 목록. 저절로 묶지 않으므로 apply는 없다. 점멸 중엔 입력을 받지 않는다
+  function flash(targets, color, ms) {
+    return new Promise(res => { hl = { Ls: targets, bad: color === 'bad', ms, t0: performance.now(), res, t: setTimeout(() => { hl = null; res(true); }, ms) }; });
+  }
+  function endHint(v) { if (!hl) return; clearTimeout(hl.t); const r = hl.res; hl = null; r(v); }
   function line(p, c, a, w = 1, close = false) {
     if (p.length < 2) return; cx.globalAlpha = a; cx.lineCap = cx.lineJoin = 'round'; cx.beginPath(); cx.moveTo(p[0].x, p[0].y);
     for (const q of p) cx.lineTo(q.x, q.y); if (close) cx.closePath();
@@ -1685,6 +1969,7 @@ function createBoard(B, cb) {
         cx.globalAlpha = 1;
       }
     }
+    if (hl) { const a = .25 + .75 * (.5 + .5 * Math.cos((t - hl.t0) / hl.ms * Math.PI * 6)); for (const L of hl.Ls) { fill(L, hl.bad ? COL.bad : '#F6C64A', .18 * a); cx.setLineDash([10, 8]); line(L, hl.bad ? COL.bad : '#E0A82E', a, 1, true); cx.setLineDash([]); } }
     if (drawing && pts.length > 1) {
       const c = COL[lineState], l = pts[pts.length - 1], cl = cutAt(l, pts[0], P.rocks, P.fences, animals);
       fill(pts, c, .13); cx.globalAlpha = .5; cx.setLineDash([3, 9]); cx.strokeStyle = cl ? COL.cut : c; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(l.x, l.y); cx.lineTo(pts[0].x, pts[0].y); cx.stroke(); cx.setLineDash([]); cx.globalAlpha = 1;
@@ -1694,9 +1979,16 @@ function createBoard(B, cb) {
   }
   function start() { if (!P) return; fit(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
   function stop() { cancelAnimationFrame(raf); raf = 0; drawing = false; lastAct = 0; }
-  function clear() { if (solved || !P) return; open(P, null, boardMs); saveNow(); }
+  function clear() { if (solved || !P || hl) return; open(P, null, boardMs); saveNow(); }
   addEventListener('resize', () => { if (raf) fit(); });
-  return { open, start, stop, clear, get solved() { return solved; }, get ms() { return boardMs; }, get left() { return animals.map(a => ({ x: a.x, y: a.y, kind: a.kind, i: a.i })); } };
+  const left = () => animals.map(a => ({ x: a.x, y: a.y, kind: a.kind, i: a.i }));
+  const api = {
+    open, start, stop, clear, flash, hint: () => runHint('loop', api),
+    getState: () => ({ left: left(), gone: gone.map(g => g.slice()), moves }), isBusy: () => !!hl || drawing,
+    get puzzle() { return P; }, get solved() { return solved; }, get ms() { return boardMs; }, get left() { return left(); },
+  };
+  register('loop', api);
+  return api;
 }
 
 return { createBoard };
@@ -1704,7 +1996,7 @@ return { createBoard };
 __m.games_loop_index = (() => {
 // 한붓 퍼즐 게임 모듈. 생성기는 h1 그대로(시드 결정적, 무거움) → gen은 Promise.
 // 화면이 멈추지 않게 시도 단위로 잘라(이터레이터) 돌리고, 사다리 판을 만들면 다음 판을 쉬는 시간(requestIdleCallback)에 미리 만든다(워커 없음)
-const { genIter } = __m.games_loop_gen;
+const { genIter, GEN_VER, SAME_AS_PREV_MAX } = __m.games_loop_gen;
 const { createBoard } = __m.games_loop_board;
 const K = 4;
 const cache = new Map(), jobs = new Map();
@@ -1738,17 +2030,17 @@ const dots = n => { let d = ''; for (let k = 0; k < n; k++) { const a = Math.PI 
 const RULE = '같은 동물끼리만 한 번에 둘러싸요';   // 규칙 한 줄(판 아래 tip 첫머리·장 미리 보기)
 const game = {
   id: 'loop', title: '한붓 퍼즐', prefix: 'g.loop.',
-  GEN_VER: 1, SAME_AS_PREV_MAX: 0, kinds: K,
+  GEN_VER, SAME_AS_PREV_MAX, kinds: K,
   gen: (st, seed) => job(st, seed, true),
   daily: { st: 12 },
   lap: { tiers: [{ key: 1, label: '묶음 3~4', st: 7, unlock: 4 }, { key: 2, label: '묶음 4~5', st: 12, unlock: 9 }, { key: 3, label: '묶음 5~6', st: 19, unlock: 16 }] },
-  ladderInfo: st => ({ size: st <= 3 ? '묶음 2~3' : st <= 8 ? '묶음 3~4' : st <= 15 ? '묶음 4~5' : '묶음 5~6' }),
+  ladderInfo: st => ({ size: st <= 3 ? '묶음 2~3' : st <= 8 ? '묶음 3~4' : st <= 15 ? '묶음 4~5' : st <= 22 ? '묶음 5~6' : st <= 30 ? '묶음 6~7' : '묶음 7' }),
   animalAt: i => i < 3 ? 1 : i < 4 ? 4 : null,
   book: () => [
     { g: '단서', items: [
       { label: '바위', at: 4, icon: S('<path d="M10 30C8 20 16 11 26 12C36 13 41 22 38 31C35 38 14 39 10 30Z" fill="#8E8780" stroke="#5E5852" stroke-width="2"/><ellipse cx="20" cy="20" rx="6" ry="3.5" fill="#B5AEA6"/>') },
       { label: '울타리', at: 9, icon: S('<path d="M6 30L42 18" stroke="#8A5A2E" stroke-width="6" stroke-linecap="round"/><circle cx="12" cy="28" r="4" fill="#6B4220"/><circle cx="24" cy="24" r="4" fill="#6B4220"/><circle cx="36" cy="20" r="4" fill="#6B4220"/>') }] },
-    { g: '묶음 수', items: [{ label: '2~3', at: 1, icon: dots(2) }, { label: '3~4', at: 4, icon: dots(3) }, { label: '4~5', at: 9, icon: dots(4) }, { label: '5~6', at: 16, icon: dots(5) }] },
+    { g: '묶음 수', items: [{ label: '2~3', at: 1, icon: dots(2) }, { label: '3~4', at: 4, icon: dots(3) }, { label: '4~5', at: 9, icon: dots(4) }, { label: '5~6', at: 16, icon: dots(5) }, { label: '6~7', at: 23, icon: dots(6) }, { label: '7', at: 31, icon: dots(7) }] },
   ],
   head: P => `파 <b>${P.par}</b>`,
   rule: RULE,
@@ -1892,46 +2184,51 @@ function settle(rec, g, date) {
   return STORY[g.animal].visit;
 }
 
-// 성장: 울타리 치기 4판마다 우리 1칸(첫 판에 바로 1칸), 한 줄로·한붓 퍼즐 5판마다 길·밭 1칸
-const MAX = { pens: 12, paths: 8, fields: 8 };
-const solvedOf = (summary, g) => {
-  const n = summary && summary[g] && summary[g].solved;
-  return Number.isFinite(n) && n > 0 ? n : 0;
-};
-function farmStage(summary) {
-  const pens = Math.min(MAX.pens, Math.ceil(solvedOf(summary, 'fence') / 4));
-  const paths = Math.min(MAX.paths, Math.ceil(solvedOf(summary, 'line') / 5));
-  const fields = Math.min(MAX.fields, Math.ceil(solvedOf(summary, 'loop') / 5));
-  const t = pens + paths + fields;
-  return { pens, paths, fields, barnLevel: t >= 28 ? 3 : t >= 12 ? 2 : t >= 3 ? 1 : 0 };
-}
-
-// 장: 세계 지도의 지역. 1장 목장(울타리 치기)은 처음부터, 2장 개울(한 줄로)은 울타리 치기 15판, 3장 들판(한붓 퍼즐)은 한 줄로 15판을 풀면 열린다
-const CHAPTER_NEED = 15;
+// 장 = 세 게임 × 10판. 장 c의 게임 구간은 사다리 판 (c-1)*10+1 … c*10. 장 완료 = 세 게임 모두 그 구간 10판을 풂 → 다음 장이 열린다
+// 4장(숲)은 지형만 있고 게임 자리가 없다(준비 중)
+const PER = 10;
 const CHAPTERS = [
-  { n: 1, game: 'fence', name: '목장' },
-  { n: 2, game: 'line', name: '개울', from: 'fence' },
-  { n: 3, game: 'loop', name: '들판', from: 'line' },
+  { n: 1, name: '목장' },
+  { n: 2, name: '개울' },
+  { n: 3, name: '들판' },
+  { n: 4, name: '숲', soon: true },
 ];
-// 열리는 순간 시트에 보이는 이야기 2줄
+const PLAY_CH = CHAPTERS.filter(c => !c.soon).length;
+const rangeOf = n => [(n - 1) * PER + 1, n * PER];
+const chOf = st => ((st - 1) / PER | 0) + 1;
+const REWARD = 3;   // 장을 마칠 때 받는 힌트 쿠폰
+// 열리는 순간 시트에 보이는 이야기 2줄(보상 줄은 허브가 덧붙인다)
 const CHAPTER_STORY = {
   2: ['울타리 너머로 개울 소리가 들린다.', '길이 끊겨 있어 아직 건너지 못한다.'],
   3: ['징검다리를 건너니 낮은 돌담 문이 나온다.', '그 너머 들판은 오래 묵어 풀만 자랐다.'],
+  4: ['들판 끝에 숲 그림자가 길게 드리웠다.', '숲으로 드는 길은 아직 풀에 덮여 있다.'],
 };
-// summary = { fence|line|loop: { solved } }. need = 열릴 때까지 남은 판(앞 장의 게임 기준). 3장은 2장이 열려 있어야 열린다
-function chapterGate(summary) {
+// best = { fence|line|loop: { 판 번호: 기록 } } → { 1..4: { fence, line, loop: 구간 안 푼 판 수, done } }
+function chapterProg(best) {
   const out = {};
-  let prev = true;
   for (const c of CHAPTERS) {
-    if (!c.from) continue;
-    const need = Math.max(0, CHAPTER_NEED - solvedOf(summary, c.from)), open = prev && need === 0;
-    out[c.n] = { open, need };
-    prev = open;
+    const [lo, hi] = rangeOf(c.n), o = {};
+    for (const g of GAMES) { const b = (best && best[g]) || {}; let k = 0; for (let s = lo; s <= hi; s++) if (b[s]) k++; o[g] = k; }
+    o.done = !c.soon && GAMES.every(g => o[g] >= PER);
+    out[c.n] = o;
   }
   return out;
 }
+// 장 n(2~)은 n-1장 완료로 열린다. need = n-1장에서 남은 판 수(세 게임 합)
+function chapterGate(prog) {
+  const out = {};
+  for (const c of CHAPTERS) if (c.n > 1) { const p = prog[c.n - 1]; out[c.n] = { open: !!p.done, need: GAMES.reduce((a, g) => a + PER - Math.min(PER, p[g]), 0) }; }
+  return out;
+}
+// 지역 성장: 그 장의 구간 진행(게임별 0~10판) → 우리 6칸·길 5칸·밭 6칸, 장식(헛간·풍차·다리 등)은 세 게임 합 0~30
+const MAX = { pens: 6, paths: 5, fields: 6 };
+function farmStage(p) {
+  const n = g => Math.max(0, Math.min(PER, (p && p[g]) | 0));
+  const t = n('fence') + n('line') + n('loop');
+  return { pens: Math.ceil(n('fence') * MAX.pens / PER), paths: Math.ceil(n('line') * MAX.paths / PER), fields: Math.ceil(n('loop') * MAX.fields / PER), n: { fence: n('fence'), line: n('line'), loop: n('loop') }, t, barnLevel: t >= 30 ? 3 : t >= 15 ? 2 : t >= 3 ? 1 : 0 };
+}
 
-return { GAMES, GUESTS, dayNum, timeOfDay, TIME_PAL, season, SEASON_DECO, holiday, STORY, guest, settle, MAX, farmStage, CHAPTER_NEED, CHAPTERS, CHAPTER_STORY, chapterGate };
+return { GAMES, GUESTS, dayNum, timeOfDay, TIME_PAL, season, SEASON_DECO, holiday, STORY, guest, settle, PER, CHAPTERS, PLAY_CH, rangeOf, chOf, REWARD, CHAPTER_STORY, chapterProg, chapterGate, MAX, farmStage };
 })();
 __m.move = (() => {
 // 기기 옮기기: 앱 전체 기록을 한 줄 글(MG1:)로 만들고, 다른 기기의 글(MG1: 또는 옛 울타리 치기 FARM1:)을 검증해 게임별로 합친다. 네트워크 없음
@@ -1945,8 +2242,8 @@ const sameBoard = (G, v, st) => v === G.GEN_VER || (v === G.GEN_VER - 1 && st <=
 
 // 옛 울타리 치기 글(FARM1:). 하네스·옛 앱 호환용으로 남긴다
 function encode(rec, state) { const body = b64(JSON.stringify({ rec, state })); return 'FARM1:' + body + ':' + sum(body); }
-// games: { id: { rec, state } }, guests: 정착한 손님 동물 { 이름: { day, visit? } }, chapters: 열어 본 장 { 2|3: { day } }
-function encodeAll(ses, games, guests, chapters) { const body = b64(JSON.stringify({ app: { ses, guests: guests || {}, chapters: chapters || {} }, games })); return 'MG1:' + body + ':' + sum(body); }
+// games: { id: { rec, state } }, guests: 정착한 손님 동물 { 이름: { day, visit? } }, chapters: 열린 장 { 2..4: { day } }, hint: { hints: 힌트 쿠폰 수 }
+function encodeAll(ses, games, guests, chapters, hint) { const body = b64(JSON.stringify({ app: { ses, guests: guests || {}, chapters: chapters || {}, ...(hint || {}) }, games })); return 'MG1:' + body + ':' + sum(body); }
 
 const isObj = x => x && typeof x === 'object' && !Array.isArray(x);
 const num = x => typeof x === 'number' && isFinite(x) && x >= 0;
@@ -1961,7 +2258,7 @@ function decodeGame(G, d) {
   const r = d && d.rec, s = d && d.state;
   if (!isObj(r) || !isObj(r.best) || !isObj(r.daily) || !isObj(s)) return null;
   const best = {}, daily = {}, keys = G.lap.tiers.map(t => String(t.key));
-  for (const k in r.best) { const b = r.best[k]; if (!stage(k) || !isObj(b) || !ms(b.ms)) return null; best[k] = { ms: b.ms, v: b.v | 0 }; }
+  for (const k in r.best) { const b = r.best[k]; if (!stage(k) || !isObj(b) || !ms(b.ms)) return null; best[k] = { ms: b.ms, v: b.v | 0, ...(num(b.h) && b.h >= 1 ? { h: b.h | 0 } : {}) }; }
   for (const k in r.daily) { const b = r.daily[k]; if (!day(k) || !isObj(b) || !num(b.ms)) return null; daily[k] = { ms: b.ms, v: b.v | 0, ...(b.late ? { late: true } : {}) }; }
   const lap = {};
   if (r.lap !== undefined) { if (!isObj(r.lap)) return null; for (const k in r.lap) { const o = lapOf(r.lap[k]); if (!keys.includes(k) || !o) return null; lap[k] = o; } }
@@ -1987,19 +2284,19 @@ function decodeGuests(g) {
   }
   return out;
 }
-// 장: 아는 장 번호(2·3)만, 날짜는 YYYYMMDD. 형식이 틀리면 null(글 전체 거절)
+// 장: 아는 장 번호(2~4)만, 날짜는 YYYYMMDD. 형식이 틀리면 null(글 전체 거절)
 function decodeChapters(g) {
   if (g === undefined) return {};
   if (!isObj(g)) return null;
   const out = {};
   for (const k in g) {
-    if (!CHAPTERS.some(c => c.from && String(c.n) === k)) continue;
+    if (!CHAPTERS.some(c => c.n > 1 && String(c.n) === k)) continue;
     if (!isObj(g[k]) || !day(String(g[k].day))) return null;
     out[k] = { day: +g[k].day };
   }
   return out;
 }
-// 잘못된 글이면 null. 맞으면 { sesN, guests, chapters, games: { id: 검증된 것 } }. 마지막 MG1:/FARM1:부터 읽는다(앞에 붙은 설명·거절된 옛 글은 무시)
+// 잘못된 글이면 null. 맞으면 { sesN, guests, chapters, hints, games: { id: 검증된 것 } }. 마지막 MG1:/FARM1:부터 읽는다(앞에 붙은 설명·거절된 옛 글은 무시)
 const RE = { 'MG1:': /^MG1:([A-Za-z0-9+/]+=*):([0-9a-f]{8})$/, 'FARM1:': /^FARM1:([A-Za-z0-9+/]+=*):([0-9a-f]{8})$/ };
 function decode(text) {
   const t = String(text), im = t.lastIndexOf('MG1:'), iF = t.lastIndexOf('FARM1:'), pre = im > iF ? 'MG1:' : 'FARM1:', i = Math.max(im, iF);
@@ -2007,12 +2304,14 @@ function decode(text) {
   const tail = t.slice(i), m = RE[pre].exec(tail.split(/\s/)[0]) || RE[pre].exec(tail.replace(/\s+/g, ''));
   if (!m || sum(m[1]) !== m[2]) return null;
   let d; try { d = JSON.parse(unb64(m[1])); } catch (e) { return null; }
-  if (pre === 'FARM1:') { const g = decodeGame(GAMES[0], d); return g ? { sesN: g.rec.sesN, guests: {}, chapters: {}, games: { fence: g } } : null; }
+  if (pre === 'FARM1:') { const g = decodeGame(GAMES[0], d); return g ? { sesN: g.rec.sesN, guests: {}, chapters: {}, hints: 0, games: { fence: g } } : null; }
   if (!isObj(d) || !isObj(d.games)) return null;
   const guests = decodeGuests(isObj(d.app) ? d.app.guests : undefined);
   const chapters = decodeChapters(isObj(d.app) ? d.app.chapters : undefined);
   if (!guests || !chapters) return null;
-  const out = { sesN: isObj(d.app) && isObj(d.app.ses) && num(d.app.ses.n) ? d.app.ses.n | 0 : 0, guests, chapters, games: {} };
+  const ap = isObj(d.app) ? d.app : {};
+  if (ap.hints !== undefined && !num(ap.hints)) return null;
+  const out = { sesN: isObj(ap.ses) && num(ap.ses.n) ? ap.ses.n | 0 : 0, guests, chapters, hints: ap.hints | 0, games: {} };
   for (const id in d.games) { const G = GAMES.find(g => g.id === id); if (!G) continue; const g = decodeGame(G, d.games[id]); if (!g) return null; out.games[id] = g; }
   return out;
 }
@@ -2054,11 +2353,11 @@ function mergeChapters(dst, inc) {
 return { sameBoard, encode, encodeAll, decode, merge, mergeGuests, mergeChapters };
 })();
 __m.map = (() => {
-// 홈 = 세계 지도. 위에서 아래로 1장 목장(울타리 치기) → 2장 개울(한 줄로) → 3장 들판(한붓 퍼즐). 지역마다 캔버스 하나 + 투명 버튼
+// 홈 = 세계 지도. 위에서 아래로 1장 목장 → 2장 개울 → 3장 들판 → 4장 숲(준비 중). 지역마다 세 게임 자리(우리·길·밭)가 있다. 지역마다 캔버스 하나 + 투명 버튼
 // 논리 좌표는 지역마다 400 × h(지역 안 좌표). 잔디 무늬만 세계 좌표로 이어 붙인다
 // 층: base(정적) → 움직이는 것(동물 숨쉬기·풍차·연기·눈/낙엽, 4fps, 화면에 보이는 열린 지역만) → 시간대 덮개 → top(정적: 불빛·표지판·점)
-// 잠긴 지역은 정적 한 장(채도 낮춤 + 안개)이고, 문 표지판("N판 더")만 DOM이다. 잠긴 지역 탭·열린 지역 "미리 보기" = 장 미리 보기(renderPreview)
-const { timeOfDay, season, holiday, guest: guestOf, farmStage, TIME_PAL, SEASON_DECO, MAX, CHAPTERS } = __m.living;
+// 잠긴 지역은 정적 한 장(채도 낮춤 + 안개)이고, 문 표지판("N장 세 게임 N판 더")만 DOM이다. 잠긴 지역 탭·열린 지역 "미리 보기" = 장 미리 보기(renderPreview)
+const { timeOfDay, season, holiday, guest: guestOf, farmStage, TIME_PAL, SEASON_DECO, MAX, CHAPTERS, rangeOf } = __m.living;
 
 const W = 400, TICK = 250, DPR = 2;
 const INK = '#3A2A1C', WOOD = '#9A6332', WOOD_HI = '#C99060', DARK = '#5A3A1C', RED = '#E8563F';
@@ -2067,33 +2366,34 @@ const DRY = '#CDBF8E', SOIL = '#B4875A', DIRT = '#D9BF8C', WATER = '#8DB9D6', IC
 // 우리 동물 = 팩 동물 순서(art.pen[i % 4]). 팩 그림 이름은 코드에 두지 않는다(빌드 에셋 점검 M0-2)
 const TITLES = { fence: '울타리 치기', line: '한 줄로', loop: '한붓 퍼즐' };
 
-// 지역: 높이(40의 배수라 잔디 무늬가 이어진다), 게임 구역(탭 영역), 표지판, 손님이 오는 가장자리
+// 지역: 높이(40의 배수라 잔디 무늬가 이어진다), 장 제목(ty), 세 게임 자리(plot 왼쪽 위 = 표지판, 176×150), 손님이 오는 자리
+// 지역마다 우리(울타리 치기)·길과 연못(한 줄로)·밭(한붓 퍼즐) 세 자리를 두고 배치를 바꾼다: 1장 목장(헛간·풍차), 2장 개울이 가로지름, 3장 넓은 들판, 4장 숲 가장자리(게임 없음)
+const PW = 176, PH = 150;
 const REGIONS = [
-  { n: 1, game: 'fence', h: 480, zone: { x: 8, y: 72, w: 384, h: 360 }, sign: [12, 76], visit: [40, 400] },
-  { n: 2, game: 'line', h: 480, zone: { x: 8, y: 0, w: 384, h: 470 }, sign: [12, 14], visit: [40, 320] },
-  { n: 3, game: 'loop', h: 440, zone: { x: 8, y: 60, w: 384, h: 372 }, sign: [12, 66], visit: [40, 330] },
+  { n: 1, h: 480, ty: 76, plots: { fence: [12, 132], line: [12, 292], loop: [212, 292] }, visit: [200, 214] },
+  { n: 2, h: 480, ty: 10, plots: { line: [12, 66], fence: [212, 66], loop: [12, 272] }, visit: [200, 160] },
+  { n: 3, h: 460, ty: 70, plots: { loop: [12, 126], fence: [212, 126], line: [112, 286] }, visit: [200, 214] },
+  { n: 4, h: 360, ty: 10, plots: {}, visit: [200, 236] },
 ];
 const regionOf = n => REGIONS[n - 1];
-// 1장: 우리 12칸 + 헛간·풍차, 아래쪽 울타리 문(2장으로)
-const PEN = i => ({ x: 16 + i % 4 * 54, y: 116 + (i / 4 | 0) * 68, w: 48, h: 60 });
-const BARN = { x: 272, y: 128, w: 84, h: 72 };
-const MILL = { x: 330, y: 300 };
-const GATE1 = { y: 446, a: 176, b: 224 };
-// 2장: 길 5칸(울타리 문 → 개울가) + 물길 3칸(연못 → 개울), 개울을 건너는 곳(징검다리, 길이 다 나면 다리)
-const ROAD = [[200, 0], [194, 70], [146, 128], [128, 204], [162, 282], [200, 366]];
-const POND = { x: 300, y: 190, rx: 60, ry: 38 };
-const DITCH = [[318, 228], [334, 290], [318, 344], [330, 398]];
-const STREAM = [396, 426];
-// 3장: 돌담 문 + 밭 8칸 + 목초지 덤불
-const FIELD = i => ({ x: 16 + i % 4 * 93, y: 116 + (i / 4 | 0) * 58, w: 85, h: 48 });
-const BUSH = [[300, 318, 16], [334, 306, 20], [366, 322, 15]];
-// 정착 자리: [지역, x, y]. 그 지역이 잠겨 있으면 1장 가장자리 임시 자리
-const SETTLED = { duck: [2, 276, 196], donkey: [1, 372, 226], fox: [3, 330, 344] };
-const TEMP = { duck: [1, 86, 404], fox: [1, 130, 404] };
+const PEN = ([ox, oy], i) => ({ x: ox + 4 + i % 3 * 58, y: oy + 44 + (i / 3 | 0) * 54, w: 52, h: 48 });
+const FIELD = ([ox, oy], i) => ({ x: ox + 4 + i % 3 * 58, y: oy + 46 + (i / 3 | 0) * 50, w: 52, h: 42 });
+const ROAD = ([ox, oy]) => [[4, 58], [40, 56], [62, 84], [46, 114], [84, 138], [150, 140]].map(([x, y]) => [ox + x, oy + y]);
+const POND = ([ox, oy]) => ({ x: ox + 128, y: oy + 88, rx: 40, ry: 24 });
+const BARN = { x: 290, y: 128, w: 84, h: 72 };
+const MILL = { x: 238, y: 232 };
+const HUT = { x: 296, y: 300, w: 76, h: 64 };
+const GATE1 = { y: 458, a: 176, b: 224 };
+const STREAM = [222, 252];
+const BUSH = [[330, 330, 16], [362, 318, 20], [384, 340, 14]];
+// 정착 자리: [지역, x, y]. 그 지역이 잠겨 있으면 1장 임시 자리
+const SETTLED = { donkey: [1, 262, 196], duck: [2, 140, 140], fox: [3, 352, 360] };
+const TEMP = { duck: [1, 330, 250], fox: [1, 362, 252] };
 const TREES = {
-  1: [[236, 336, 1], [386, 300, .8], [218, 92, .7]],
-  2: [[56, 70, .9], [372, 300, .8], [262, 306, .7]],
-  3: [[200, 300, 1], [380, 250, .8], [40, 410, .8]],
+  1: [[200, 120, .7], [386, 270, .8], [196, 440, .8]],
+  2: [[200, 40, .8], [388, 300, .7], [196, 300, .8], [380, 440, .8]],
+  3: [[40, 300, .9], [60, 420, .8], [388, 250, .8], [300, 440, .7]],
+  4: [[30, 90, 1.1], [80, 70, .9], [330, 80, 1], [380, 110, 1.1], [24, 200, 1.2], [376, 210, 1.2], [60, 300, 1.3], [130, 320, 1.2], [270, 320, 1.2], [340, 300, 1.3], [200, 340, 1.1]],
 };
 const FOG = { dawn: '#F4E6DA', day: '#F2F1EC', dusk: '#E8D4C8', night: '#3E4860' };
 
@@ -2141,16 +2441,15 @@ function trees(c, v, r, list) {
     else { line(c, [[x, y], [x - 6 * s, y - 12 * s]], '#7A5A3A', 2); line(c, [[x, y + 2], [x + 7 * s, y - 10 * s]], '#7A5A3A', 2); dot(c, x - 6 * s, y - 13 * s, 2.4, '#FFFFFF'); dot(c, x + 7 * s, y - 11 * s, 2.4, '#FFFFFF'); }
   }
 }
-// 1장 아래 울타리와 문. 2장이 열리면 문짝이 열려 있다
-function gate1(c, open) {
-  const { y, a, b } = GATE1;
-  line(c, [[314, 202], [300, 290], [236, 380], [200, y], [200, 480]], '#D2BC90', 9);
+// 지역 아래 울타리와 문(다음 장으로). 다음 장이 열리면 문짝이 열려 있다
+function gate(c, y, open) {
+  const { a, b } = GATE1;
   for (const [x0, x1] of [[0, a], [b, W]]) { bar(c, x0, y - 6, x1, y - 6, 3); bar(c, x0, y + 6, x1, y + 6, 3); for (let x = x0 + 8; x < x1; x += 24) line(c, [[x, y - 12], [x, y + 12]], DARK, 3); }
   for (const x of [a, b]) { line(c, [[x, y - 16], [x, y + 14]], '#4A2E14', 5); dot(c, x, y - 16, 3, '#4A2E14'); }
   if (open) { bar(c, a, y - 6, a - 10, y + 18, 3); bar(c, a, y + 6, a - 10, y + 28, 3); bar(c, b, y - 6, b + 10, y + 18, 3); bar(c, b, y + 6, b + 10, y + 28, 3); }
   else { bar(c, a, y - 6, b, y - 6, 3); bar(c, a, y + 6, b, y + 6, 3); line(c, [[a + 2, y - 6], [b - 2, y + 6]], WOOD, 2.4); }
 }
-// 2장 개울: 물결 띠 + 건너는 곳. 길 5칸이 다 나면 징검다리 위에 나무 다리
+// 2장 개울: 물결 띠 + 건너는 곳. 장식 2단계(세 게임 합 15판)부터 징검다리 위에 나무 다리
 function stream(c, v) {
   const [t, b] = STREAM, ice = v.season === 'winter';
   const edge = (y0, ph) => { const p = []; for (let x = 0; x <= W; x += 10) p.push([x, y0 + Math.sin(x / 40 + ph) * 4]); return p; };
@@ -2159,8 +2458,7 @@ function stream(c, v) {
   c.fillStyle = ice ? ICE : WATER; c.beginPath(); top.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); bot.slice().reverse().forEach(([x, y]) => c.lineTo(x, y)); c.fill();
   for (let i = 0; i < 6; i++) line(c, [[20 + i * 66, t + 12 + (i % 2) * 6], [40 + i * 66, t + 12 + (i % 2) * 6]], '#FFFFFF66', 1.5);
   for (const [x, y] of [[192, t - 2], [208, t + 10], [192, t + 22], [206, b + 4]]) { c.fillStyle = STONE; c.beginPath(); c.ellipse(x, y, 9, 6, 0, 0, 6.3); c.fill(); dot(c, x - 2, y - 2, 2.4, '#FFFFFF33'); }
-  line(c, [[200, b + 8], [200, 480]], '#D2BC90', 9);
-  if (v.stage.paths >= ROAD.length - 1) {
+  if (v.stage.barnLevel >= 2) {
     c.fillStyle = '#8A5A30'; c.fillRect(184, t - 14, 32, b - t + 28);
     for (let y = t - 12; y < b + 14; y += 6) line(c, [[186, y], [214, y]], WOOD_HI, 2);
     for (const x of [182, 218]) line(c, [[x, t - 16], [x, b + 16]], DARK, 3);
@@ -2179,49 +2477,76 @@ function bushes(c, v) {
   const col = { spring: '#7EA85A', summer: '#5E8F48', autumn: '#B8843E', winter: '#C9D3CC' }[v.season];
   for (const [x, y, s] of BUSH) { dot(c, x, y, s, col); dot(c, x - s * .3, y - s * .35, s * .45, '#FFFFFF1E'); }
 }
+// 3장 장식: 건초 더미(단계 수만큼) + 허수아비(2단계부터)
+function hay(c, lv) {
+  for (let i = 0; i < lv; i++) { const x = 40 + i * 30, y = 300 + (i % 2) * 12; c.fillStyle = '#D9B45A'; c.beginPath(); c.ellipse(x, y, 13, 10, 0, Math.PI, 0); c.lineTo(x + 13, y + 6); c.lineTo(x - 13, y + 6); c.fill(); line(c, [[x - 8, y - 2], [x + 8, y - 2]], '#B8923E', 1.2); }
+  if (lv >= 2) { const x = 70, y = 380; line(c, [[x, y - 26], [x, y + 14]], '#7A5A3A', 3); line(c, [[x - 14, y - 12], [x + 14, y - 12]], '#7A5A3A', 3); dot(c, x, y - 28, 6, '#E8C890'); c.fillStyle = '#8A5A30'; c.fillRect(x - 8, y - 38, 16, 5); c.fillStyle = '#C8402F'; c.fillRect(x - 7, y - 18, 14, 14); }
+}
+// 4장 숲 가장자리: 아래로 갈수록 짙은 숲, 가운데 풀에 덮인 길
+function forest(c, v, R) {
+  const S = SEASON_DECO[v.season], col = S.tree || '#C9D3CC';
+  line(c, [[200, 0], [200, 200], [180, 260]], '#D2BC9088', 9, [4, 10]);
+  c.save(); c.globalAlpha = .55;
+  for (let x = -20; x < W + 40; x += 34) { dot(c, x, R.h - 30 + Math.sin(x) * 8, 36, '#4E6E44'); dot(c, x + 16, R.h - 70 + Math.cos(x) * 10, 28, col); }
+  c.restore();
+}
+function plotGround(c, xy, k) { c.save(); c.globalAlpha = .18; c.fillStyle = ['#C9BB8A', '#B4875A', '#8DB9D6'][k]; rr(c, xy[0], xy[1] + 38, PW, PH - 36, 14); c.fill(); c.restore(); }
+// 세 게임 자리. 성장 = 그 장의 구간 진행
+function plots(c, v, R, r) {
+  const P = R.plots, st = v.stage;
+  if (P.fence) for (let i = 0; i < MAX.pens; i++) pen(c, PEN(P.fence, i), i < st.pens, i, v);
+  if (P.loop) for (let i = 0; i < MAX.fields; i++) field(c, FIELD(P.loop, i), i < st.fields, v, r);
+  if (P.line) { pond(c, v, POND(P.line)); roads(c, v, ROAD(P.line)); }
+}
 function base1(c, v, R, r) {
   sky(c, v, r);
-  ground(c, v, R, r, 64, v.stage.pens / MAX.pens);
+  ground(c, v, R, r, 64, v.stage.t / 30);
   trees(c, v, r, TREES[1]);
-  gate1(c, v.ch[2].open);
-  for (let i = 0; i < MAX.pens; i++) pen(c, PEN(i), i < v.stage.pens, i, v);
-  barn(c, v.stage.barnLevel, v);
+  line(c, [[200, 278], [200, 480]], '#D2BC90', 9);
+  gate(c, GATE1.y, v.ch[2].open);
+  plots(c, v, R, r);
+  barn(c, v.stage.barnLevel, v, BARN);
   mill(c, v.stage.barnLevel);
-  if (v.hol && v.hol.deco === 'tree') xmasTree(c, 250, 232);
+  if (v.hol && v.hol.deco === 'tree') xmasTree(c, 250, 112);
 }
 function base2(c, v, R, r) {
-  ground(c, v, R, r, 0, v.stage.paths / MAX.paths);
+  ground(c, v, R, r, 0, v.stage.t / 30);
+  line(c, [[200, 0], [200, 480]], '#D2BC90', 9);
   trees(c, v, r, TREES[2]);
-  pond(c, v); roads(c, v); stream(c, v);
+  stream(c, v);
+  plots(c, v, R, r);
+  barn(c, v.stage.barnLevel, v, HUT);
 }
 function base3(c, v, R, r) {
-  ground(c, v, R, r, 0, v.stage.fields / MAX.fields);
+  ground(c, v, R, r, 0, v.stage.t / 30);
   wall3(c, v.ch[3].open);
+  line(c, [[200, 60], [200, 286]], '#D2BC90', 9);
+  line(c, [[200, 436], [200, 460]], '#D2BC90', 9);
   trees(c, v, r, TREES[3]); bushes(c, v);
-  for (let i = 0; i < MAX.fields; i++) field(c, FIELD(i), i < v.stage.fields, v, r);
+  hay(c, v.stage.barnLevel);
+  gate(c, 446, v.ch[4].open);
+  plots(c, v, R, r);
 }
-const BASE = { 1: base1, 2: base2, 3: base3 };
-function pond(c, v) {
-  const wet = v.stage.paths > 0;
-  c.fillStyle = wet ? '#6E9A7E' : '#A89870'; c.beginPath(); c.ellipse(POND.x, POND.y, POND.rx + 4, POND.ry + 4, 0, 0, 6.3); c.fill();
-  c.fillStyle = !wet ? '#BFAE84' : v.season === 'winter' ? ICE : WATER; c.beginPath(); c.ellipse(POND.x, POND.y, POND.rx, POND.ry, 0, 0, 6.3); c.fill();
-  // 물이 차는 정도: 길·물길 수에 비례해 물결 줄
-  if (wet) for (let i = 0; i < Math.min(4, v.stage.paths); i++) line(c, [[POND.x - 26 + i * 12, POND.y - 12 + i * 8], [POND.x - 10 + i * 12, POND.y - 12 + i * 8]], '#FFFFFF66', 1.5);
-  else for (let i = 0; i < 6; i++) line(c, [[POND.x - 30 + i * 11, POND.y - 6 + (i % 2) * 10], [POND.x - 24 + i * 11, POND.y + (i % 2) * 10]], '#8A7A58', 1);
-  // 갈대
-  for (let i = 0; i < 5; i++) line(c, [[POND.x - POND.rx + 6 + i * 4, POND.y + 18], [POND.x - POND.rx + 4 + i * 4, POND.y + 4 - i % 2 * 4]], wet ? '#7E9A54' : '#A8945E', 1.6);
+function base4(c, v, R, r) {
+  ground(c, v, R, r, 0, 1);
+  forest(c, v, R);
+  trees(c, v, r, TREES[4]);
 }
-function roads(c, v) {
+const BASE = { 1: base1, 2: base2, 3: base3, 4: base4 };
+function pond(c, v, P) {
+  const n = v.stage.n.line, wet = n > 0;
+  c.fillStyle = wet ? '#6E9A7E' : '#A89870'; c.beginPath(); c.ellipse(P.x, P.y, P.rx + 4, P.ry + 4, 0, 0, 6.3); c.fill();
+  c.fillStyle = !wet ? '#BFAE84' : v.season === 'winter' ? ICE : WATER; c.beginPath(); c.ellipse(P.x, P.y, P.rx * (.5 + n / 20), P.ry * (.5 + n / 20), 0, 0, 6.3); c.fill();
+  if (wet) for (let i = 0; i < Math.min(4, Math.ceil(n / 2.5)); i++) line(c, [[P.x - 20 + i * 10, P.y - 8 + i * 5], [P.x - 8 + i * 10, P.y - 8 + i * 5]], '#FFFFFF66', 1.5);
+  else for (let i = 0; i < 6; i++) line(c, [[P.x - 24 + i * 9, P.y - 4 + (i % 2) * 8], [P.x - 19 + i * 9, P.y + (i % 2) * 8]], '#8A7A58', 1);
+  for (let i = 0; i < 5; i++) line(c, [[P.x - P.rx + 6 + i * 4, P.y + 16], [P.x - P.rx + 4 + i * 4, P.y + 3 - i % 2 * 4]], wet ? '#7E9A54' : '#A8945E', 1.6);
+}
+function roads(c, v, pts) {
   const n = v.stage.paths, ice = v.season === 'winter';
-  for (let i = 0; i < ROAD.length - 1; i++) {
-    const seg = [ROAD[i], ROAD[i + 1]];
-    if (i < n) { line(c, seg, '#BFA06C', 16); line(c, seg, ice ? '#EDE8DC' : DIRT, 12); }
-    else line(c, seg, '#B8A57A88', 10, [3, 7]);
-  }
-  for (let i = 0; i < DITCH.length - 1; i++) {
-    const seg = [DITCH[i], DITCH[i + 1]];
-    if (i + 5 < n) { line(c, seg, '#7E8F70', 10); line(c, seg, ice ? ICE : WATER, 6); }
-    else line(c, seg, '#A8946A88', 6, [2, 6]);
+  for (let i = 0; i < pts.length - 1; i++) {
+    const seg = [pts[i], pts[i + 1]];
+    if (i < n) { line(c, seg, '#BFA06C', 14); line(c, seg, ice ? '#EDE8DC' : DIRT, 10); }
+    else line(c, seg, '#B8A57A88', 8, [3, 7]);
   }
 }
 function pen(c, p, ok, i, v) {
@@ -2256,8 +2581,8 @@ function field(c, p, ok, v, r) {
     else for (let q = x + 8; q < x + w - 4; q += v.season === 'spring' ? 9 : 6) dot(c, q, yy, v.season === 'spring' ? 1.8 : 2.6, crop);
   }
 }
-function barn(c, lv, v) {
-  const { x, y, w, h } = BARN;
+function barn(c, lv, v, B) {
+  const { x, y, w, h } = B;
   if (lv === 0) {
     c.fillStyle = '#8E7A64'; c.fillRect(x + 6, y + 28, w - 12, h - 28);
     c.fillStyle = '#6E5E4E'; c.beginPath(); c.moveTo(x, y + 30); c.lineTo(x + w * .45, y + 8); c.lineTo(x + w * .62, y + 22); c.lineTo(x + w * .5, y + 34); c.fill();
@@ -2319,7 +2644,8 @@ function creature(c, art, name, x, y, s, t, ph) {
   if (name === 'fox' && !(im && im.naturalWidth)) foxMark(c, x, y, s, dy);
 }
 
-// ---------- 정적 위층(덮개 위): 불빛·명절 깃발·표지판·오늘의 판 점·손님 말풍선 점 ----------
+// ---------- 정적 위층(덮개 위): 불빛·명절 깃발·장 제목·표지판·오늘의 판 점·손님 말풍선 점 ----------
+const FONT = (w, px) => `${w} ${px}px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif`;
 function drawTop(c, v, R) {
   if (R.n === 1) {
     const { x, y, w } = BARN;
@@ -2331,18 +2657,27 @@ function drawTop(c, v, R) {
       line(c, [b, [b[0], y + 74]], DARK, 2);
     }
   }
-  sign(c, R, v);
+  title(c, R, v);
+  for (const g in R.plots) sign(c, R, v, g);
   if (v.guestAt && v.guestAt[0] === R.n) { const [, gx, gy] = v.guestAt; for (let k = 0; k < 3; k++) dot(c, gx - 5 + k * 5, gy - 26, 1.6, v.tod === 'night' ? '#F4EFD8' : INK); }
 }
-function sign(c, R, v) {
-  const [x, y] = R.sign, s = v.summary[R.game] || {}, w = 104, h = 34, night = v.tod === 'night';
+function plate(c, x, y, w, h, night) { c.fillStyle = night ? '#E8D8B4' : '#F3E2C0'; rr(c, x, y, w, h, 6); c.fill(); c.strokeStyle = WOOD; c.lineWidth = 1.5; c.stroke(); }
+function title(c, R, v) {
+  const x = 12, y = R.ty, night = v.tod === 'night';
+  plate(c, x, y, 84, 30, night);
+  c.fillStyle = INK; c.textBaseline = 'alphabetic'; c.font = FONT(800, 13); c.fillText(`${R.n}장 ${CHAPTERS[R.n - 1].name}`, x + 10, y + 20);
+}
+// 자리 표지판: "울타리 치기 · 7/10" + 둘째 줄(이어 하기 N판 / 다시 풀기). 오늘의 판 점은 지금 장(열린 장 중 가장 아래)에만
+const signText = (g, n) => `${TITLES[g]} · ${n}/10`;
+function sign(c, R, v, g) {
+  const [x, y] = R.plots[g], w = 132, h = 34, night = v.tod === 'night', n = v.stage.n[g], s = v.summary[g] || {};
   line(c, [[x + 14, y + h], [x + 14, y + h + 8]], DARK, 3);
-  c.fillStyle = night ? '#E8D8B4' : '#F3E2C0'; rr(c, x, y, w, h, 6); c.fill(); c.strokeStyle = WOOD; c.lineWidth = 1.5; c.stroke();
+  plate(c, x, y, w, h, night);
   c.fillStyle = INK; c.textBaseline = 'alphabetic';
-  c.font = '700 12px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif'; c.fillText(TITLES[R.game], x + 8, y + 15);
-  c.globalAlpha = .7; c.font = '600 11px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
-  c.fillText(`이어 하기 ${Math.max(1, s.next || 1)}판`, x + 8, y + 28); c.globalAlpha = 1;
-  if (!s.dailyDone) { dot(c, x + w - 8, y + 8, 5, '#F6EADA'); dot(c, x + w - 8, y + 8, 3.6, RED); }
+  c.font = FONT(700, 12); c.fillText(signText(g, n), x + 8, y + 15);
+  c.globalAlpha = .7; c.font = FONT(600, 11);
+  c.fillText(n >= 10 ? '다시 풀기' : `이어 하기 ${v.nextOf(R.n, g)}판`, x + 8, y + 28); c.globalAlpha = 1;
+  if (R.n === v.cur && !s.dailyDone) { dot(c, x + w - 8, y + 8, 5, '#F6EADA'); dot(c, x + w - 8, y + 8, 3.6, RED); }
 }
 // 잠긴 지역: 채도를 낮추고 안개를 덮는다(정적)
 function fog(c, v, R, r) {
@@ -2357,7 +2692,7 @@ function fog(c, v, R, r) {
 // ---------- 움직이는 층 ----------
 function drawLive(c, v, R, t, flakes) {
   const st = v.stage;
-  if (R.n === 1) for (let i = 0; i < st.pens; i++) { const p = PEN(i); creature(c, v.art.pen || [], i % 4, p.x + p.w / 2, p.y + p.h / 2 + 2, 32, t, i * 1.7); }
+  if (R.plots.fence) for (let i = 0; i < st.pens; i++) { const p = PEN(R.plots.fence, i); creature(c, v.art.pen || [], (i + R.n - 1) % 4, p.x + p.w / 2, p.y + p.h / 2 + 2, 30, t, i * 1.7 + R.n); }
   for (const [a, n, x, y] of v.settled) if (n === R.n) creature(c, v.art, a, x, y, 30, t, a.length);
   if (v.guestAt && v.guestAt[0] === R.n) creature(c, v.art, v.guest.animal, v.guestAt[1], v.guestAt[2], 34, t, 0);
   if (R.n === 1) {
@@ -2378,23 +2713,29 @@ function drawLive(c, v, R, t, flakes) {
 }
 
 // state = { summary: {fence|line|loop: {solved, best, next, dailyDone}}, date, rec: {guests, best}, art: {pen: [팩 동물 url…], donkey, duck, fox?: url},
-//           chapters: {2|3: {open, need}}, opening?: 2|3(이번에 열리는 장: 안개가 1초 동안 걷힌다),
-//           onEnter(gameId), onGuest(guest), onDaily(gameId), onLocked(n), onPreview(n), onOpened?(n) }
-// 돌려주는 요소: .lv-map(지역 .lv-reg[data-ch] 셋)
+//           chapters: {1..4: {open, need, prog: {fence, line, loop, done}, next: {fence, line, loop}}}, opening?: 2..4(이번에 열리는 장: 안개가 1초 동안 걷힌다),
+//           onEnter(gameId, n), onGuest(guest), onDaily(gameId), onLocked(n), onPreview(n), onOpened?(n) }
+// 돌려주는 요소: .lv-map(지역 .lv-reg[data-ch] 넷)
+const ALL = { fence: 10, line: 10, loop: 10, done: true };
 function view(state) {
   const date = state.date || new Date(), rec = state.rec || {}, summary = state.summary || {};
-  const ch = { 1: { open: true, need: 0 }, 2: { open: true, need: 0 }, 3: { open: true, need: 0 }, ...(state.chapters || {}) };   // chapters가 없으면(옛 state) 모두 열림
-  const games = CHAPTERS.filter(c => ch[c.n] && ch[c.n].open).map(c => c.game), last = Math.max(...CHAPTERS.filter(c => ch[c.n].open).map(c => c.n));
+  const ch = {};
+  for (const C of CHAPTERS) ch[C.n] = { open: true, need: 0, prog: ALL, ...((state.chapters || {})[C.n] || {}) };   // chapters가 없으면(옛 state) 모두 열림
+  const last = Math.max(...CHAPTERS.filter(c => ch[c.n].open).map(c => c.n));
   const v = {
     date, rec, summary, ch, art: state.art || {}, day: date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate(),
-    tod: timeOfDay(date), season: season(date), hol: holiday(date), guest: guestOf(date, { ...rec, games }), stage: farmStage(summary),
+    tod: timeOfDay(date), season: season(date), hol: holiday(date), guest: guestOf(date, rec), stage: null,
+    cur: Math.min(last, Math.max(...CHAPTERS.filter(c => ch[c.n].open && !c.soon).map(c => c.n))),
+    nextOf: (n, g) => (ch[n].next && ch[n].next[g]) || rangeOf(n)[0],
   };
-  // 손님은 열린 지역 중 가장 아래 지역 가장자리. 정착한 동물은 제 지역(잠겨 있으면 1장 임시 자리)
+  // 손님은 열린 지역 중 가장 아래. 정착한 동물은 제 지역(잠겨 있으면 1장 임시 자리)
   v.guestAt = v.guest ? [last, ...regionOf(last).visit] : null;
   v.settled = Object.keys(SETTLED).filter(a => rec.guests && rec.guests[a] && !(v.guest && v.guest.animal === a))
     .map(a => { const [n, x, y] = ch[SETTLED[a][0]].open ? SETTLED[a] : TEMP[a]; return [a, n, x, y]; });
   return v;
 }
+// 지역마다 성장 단계가 다르다(그 장의 구간 진행)
+const at = (v, n) => ({ ...v, stage: farmStage(v.ch[n].prog) });
 const regionAt = n => { let oy = 0; for (const R of REGIONS) { if (R.n === n) return { ...R, oy }; oy += R.h; } };
 const flakesOf = (v, R) => {
   const fr = rnd(v.day + 7 + R.n), S = SEASON_DECO[v.season], k = R.h / 560;
@@ -2403,31 +2744,30 @@ const flakesOf = (v, R) => {
 // 장 미리 보기: 지역 n 한 장을 정적 캔버스로(낮, 현재 계절, 손님·표지판 없음). full = 다 열리고 다 자란 모습(모든 동물 정착)
 // full이 아니면 지금 성장 단계·지금 정착한 동물. 잠긴 장이어도 안개 없이 그린다. 그림이 늦게 풀리면 한 번 다시 그린다
 function renderPreview(state, n, full) {
-  const v = { ...view(state), tod: 'day', guest: null, guestAt: null };
+  const v0 = { ...view(state), tod: 'day', guest: null, guestAt: null };
   if (full) {
-    v.ch = { 1: { open: true }, 2: { open: true }, 3: { open: true } };
-    v.stage = farmStage({ fence: { solved: 1e3 }, line: { solved: 1e3 }, loop: { solved: 1e3 } });
-    v.settled = Object.keys(SETTLED).map(a => [a, ...SETTLED[a]]);
+    for (const C of CHAPTERS) v0.ch[C.n] = { ...v0.ch[C.n], open: true, prog: ALL };
+    v0.settled = Object.keys(SETTLED).map(a => [a, ...SETTLED[a]]);
   }
-  const R = regionAt(n), o = document.createElement('canvas'), c = o.getContext('2d'), flakes = flakesOf(v, R);
+  const v = at(v0, n), R = regionAt(n), o = document.createElement('canvas'), c = o.getContext('2d'), flakes = flakesOf(v, R);
   o.width = W * DPR; o.height = R.h * DPR;
   o.setAttribute('role', 'img'); o.setAttribute('aria-label', `${n}장 ${CHAPTERS[n - 1].name} ${full ? '완성 모습' : '지금 모습'}`);
   const paint = () => { c.setTransform(DPR, 0, 0, DPR, 0, 0); BASE[n](c, v, R, rnd(v.day + n * 101)); drawLive(c, v, R, 0, flakes); };
   paint();
-  const urls = [...(n === 1 ? (v.art.pen || []).slice(0, Math.min(4, v.stage.pens)) : []), ...v.settled.filter(s => s[1] === n).map(s => v.art[s[0]])];
+  const urls = [...(R.plots.fence ? (v.art.pen || []).slice(0, Math.min(4, v.stage.pens)) : []), ...v.settled.filter(s => s[1] === n).map(s => v.art[s[0]])];
   const late = urls.map(img).filter(i => i && !(i.complete && i.naturalWidth));
   if (late.length) Promise.all(late.map(i => i.decode().catch(() => {}))).then(paint);
   return o;
 }
 function renderWorld(state) {
-  const v = view(state), { summary, ch } = v;
+  const v0 = view(state), { summary, ch } = v0;
   const el = document.createElement('div');
   el.className = 'lv-map';
   el.style.cssText = `position:relative;width:100%;max-width:${W}px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:inset 0 2px 10px #4a60201a`;
   const live = [];
   let oy = 0;
   for (const R0 of REGIONS) {
-    const R = { ...R0, oy }, open = ch[R.n].open, opening = state.opening === R.n;
+    const R = { ...R0, oy }, open = ch[R.n].open, opening = state.opening === R.n, v = at(v0, R.n), C = CHAPTERS[R.n - 1];
     oy += R.h;
     const box = document.createElement('div');
     box.className = 'lv-reg' + (open ? '' : ' off'); box.dataset.ch = R.n;
@@ -2435,7 +2775,7 @@ function renderWorld(state) {
     const layer = f => { const o = document.createElement('canvas'); o.width = W * DPR; o.height = R.h * DPR; const c = o.getContext('2d'); c.scale(DPR, DPR); f(c); return o; };
     const cv = layer(() => {});
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
-    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `${R.n}장 ${CHAPTERS[R.n - 1].name}${open ? '' : ', 잠김'}`);
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `${R.n}장 ${C.name}${open ? '' : ', 잠김'}`);
     box.appendChild(cv);
     el.appendChild(box);
     const r = rnd(v.day + R.n * 101), tint = TIME_PAL[v.tod].tint;
@@ -2451,9 +2791,9 @@ function renderWorld(state) {
     const lockImg = () => layer(c => { drawn(c); if (tint) { c.fillStyle = tint; c.fillRect(0, 0, W, R.h); } fog(c, v, R, rnd(v.day + R.n)); });
     if (!open) {
       { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(lockImg(), 0, 0); }
-      const prev = CHAPTERS[R.n - 1].from, need = ch[R.n].need;
-      hit(0, 0, W, R.h, `${R.n}장 ${CHAPTERS[R.n - 1].name}, 잠김, ${TITLES[prev]} ${need}판 더`, () => state.onLocked && state.onLocked(R.n), { lock: R.n });
-      lockSign(box, R, prev, need);
+      const need = ch[R.n].need;
+      hit(0, 0, W, R.h, `${R.n}장 ${C.name}, 잠김, ${R.n - 1}장 세 게임 ${need}판 더`, () => state.onLocked && state.onLocked(R.n), { lock: R.n });
+      lockSign(box, R, need);
       continue;
     }
     const base = layer(drawn), top = layer(c => drawTop(c, v, R));
@@ -2468,14 +2808,17 @@ function renderWorld(state) {
     };
     frame();
     live.push({ box, frame, on: false });
-    const z = R.zone, s = summary[R.game] || {};
-    hit(z.x, z.y, z.w, z.h, `${TITLES[R.game]}, 이어 하기 ${Math.max(1, s.next || 1)}판`, () => state.onEnter && state.onEnter(R.game), { game: R.game });
-    // 오늘의 판 점: 표지판 오른쪽 위 점 둘레 44px (구역 버튼보다 위)
-    if (!s.dailyDone) hit(R.sign[0] + 96 - 22, R.sign[1] + 8 - 22, 44, 44, `${TITLES[R.game]} 오늘의 판`, () => state.onDaily && state.onDaily(R.game), { daily: R.game });
-    // 미리 보기: 표지판 오른쪽(오늘의 판 점 44px 영역(x 86~130)과 360 폭에서도 겹치지 않게 x 144), 표지판 세로 가운데에 맞춘 44px DOM 버튼
+    for (const g in R.plots) {
+      const [x, y] = R.plots[g], n = v.stage.n[g], s = summary[g] || {};
+      hit(x, y, PW, PH, `${signText(g, n)}${n >= 10 ? ' · 다시 풀기' : `, 이어 하기 ${v.nextOf(R.n, g)}판`}`, () => state.onEnter && state.onEnter(g, R.n), { game: g, ch: R.n, prog: n });
+      // 오늘의 판 점: 지금 장 표지판 오른쪽 위 점 둘레 44px (자리 버튼보다 위)
+      if (R.n === v.cur && !s.dailyDone) hit(x + 124 - 22, y + 8 - 22, 44, 44, `${TITLES[g]} 오늘의 판`, () => state.onDaily && state.onDaily(g), { daily: g });
+    }
+    if (C.soon) { const s = document.createElement('div'); s.className = 'lv-lock lv-soon'; s.dataset.ch = R.n; s.innerHTML = `<b>${R.n}장 ${C.name}</b><span>준비 중</span>`; box.appendChild(s); }
+    // 미리 보기: 장 제목 오른쪽, 제목 세로 가운데에 맞춘 44px DOM 버튼
     const pv = document.createElement('button'); pv.type = 'button'; pv.className = 'lv-pv'; pv.dataset.preview = R.n; pv.textContent = '미리 보기';
-    pv.setAttribute('aria-label', `${R.n}장 ${CHAPTERS[R.n - 1].name} 미리 보기`);
-    pv.style.left = pct(R.sign[0] + 132, W); pv.style.top = pct(R.sign[1] + 17, R.h);
+    pv.setAttribute('aria-label', `${R.n}장 ${C.name} 미리 보기`);
+    pv.style.left = pct(104, W); pv.style.top = pct(R.ty + 15, R.h);
     pv.addEventListener('click', e => { e.stopPropagation(); if (state.onPreview) state.onPreview(R.n); });
     box.appendChild(pv);
     if (v.guestAt && v.guestAt[0] === R.n) hit(v.guestAt[1] - 24, v.guestAt[2] - 34, 48, 58, '손님', () => state.onGuest && state.onGuest(v.guest), { guest: v.guest.animal });
@@ -2484,7 +2827,7 @@ function renderWorld(state) {
       const f = lockImg(); f.className = 'lv-fog';
       f.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity 1s ease-out';
       box.appendChild(f);
-      const sg = lockSign(box, R, CHAPTERS[R.n - 1].from, 0); sg.style.transition = 'opacity .6s ease-out';
+      const sg = lockSign(box, R, 0); sg.style.transition = 'opacity .6s ease-out';
       const lift = () => { f.style.opacity = '0'; sg.style.opacity = '0'; setTimeout(() => { f.remove(); sg.remove(); if (state.onOpened) state.onOpened(R.n); }, 1000); };
       requestAnimationFrame(() => requestAnimationFrame(lift));
     }
@@ -2498,19 +2841,19 @@ function renderWorld(state) {
     seen = true; if (document.hidden) return;
     for (const L of live) if (L.on) L.frame();
   }, TICK);
-  el.__living = v;   // 데모·하네스 확인용
+  el.__living = { ...v0, stage: farmStage(ch[1].prog), stages: Object.fromEntries(CHAPTERS.map(C => [C.n, farmStage(ch[C.n].prog)])) };   // 데모·하네스 확인용
   return el;
 }
-// 문 표지판: 장 이름 + 앞 장 게임 "N판 더"(도감과 같은 말). 조건을 채웠으면(열리는 중) "문이 열렸다"
-function lockSign(box, R, prev, need) {
+// 문 표지판: 장 이름 + 앞 장 세 게임 "N판 더". 조건을 채웠으면(열리는 중) "문이 열렸다"
+function lockSign(box, R, need) {
   const s = document.createElement('div');
   s.className = 'lv-lock'; s.dataset.ch = R.n;
-  s.innerHTML = `<b>${R.n}장 ${CHAPTERS[R.n - 1].name}</b><span>${need ? `${TITLES[prev]} ${need}판 더` : '문이 열렸다'}</span>`;
+  s.innerHTML = `<b>${R.n}장 ${CHAPTERS[R.n - 1].name}</b><span>${need ? `${R.n - 1}장 세 게임 ${need}판 더` : '문이 열렸다'}</span>`;
   box.appendChild(s); return s;
 }
 const renderHome = renderWorld;
 
-return { TITLES, REGIONS, renderPreview, renderWorld, renderHome };
+return { TITLES, REGIONS, signText, renderPreview, renderWorld, renderHome };
 })();
 __m.main = (() => {
 // 허브: 게임별 기록·진행(store(prefix)), 라우터·history(홈이 루트), 판 슬롯(L 사다리·D 오늘의 판·R 다시 푸는 판·P 지난 날 판·T 타임 랩·S 특별 판)
@@ -2521,7 +2864,8 @@ const lap = __m.lap;
 const book = __m.book;
 const move = __m.move;
 const { renderWorld, renderPreview } = __m.map;
-const { settle, GUESTS, STORY, chapterGate, CHAPTERS, CHAPTER_STORY } = __m.living;
+const { useHint } = __m.hint;
+const { settle, GUESTS, STORY, chapterGate, chapterProg, CHAPTERS, CHAPTER_STORY, rangeOf, chOf, PLAY_CH, REWARD } = __m.living;
 
 const $ = id => document.getElementById(id);
 const NEW_SESSION = 30 * 60e3;
@@ -2530,7 +2874,8 @@ document.head.insertAdjacentHTML('beforeend', '<style>' + SPR.map((u, i) => `.k$
 const firstRun = migrate();
 let A = app.load('rec', null);
 if (!A.guests) A.guests = {};   // 정착한 손님 동물 { 이름: { day, visit? } }
-if (!A.chapters) A.chapters = {};   // 열어 본 장 { 2|3: { day } }
+if (!A.chapters) A.chapters = {};   // 열린 장 { 2..4: { day } } (n-1장을 마친 날)
+if (!Number.isInteger(A.hints)) A.hints = 1;   // 힌트 쿠폰. 처음 1장(첫 판에서 힌트가 뭔지 알게), 장을 마칠 때 3장. 쓰기는 src/hint.js(useHint)
 const blankRec = G => ({ v: G.GEN_VER, best: {}, play: 0, solves: 0, solveMs: 0, daily: {}, lap: {}, lapN: 0, streak: { cur: 0, best: 0, last: 0 } });
 const frontierOf = rec => Object.keys(rec.best).reduce((m, s) => Math.max(m, +s), 0) + 1;
 const blankFen = G => G.id === 'fence' ? [] : null;
@@ -2553,6 +2898,13 @@ function loadGame(G) {
 }
 const ctx = Object.fromEntries(GAMES.map(G => [G.id, loadGame(G)]));
 let C = ctx[A.last] || ctx[GAMES[0].id];
+// 장 구조 v2(세 게임 × 10판): 옛 규칙(앞 장 게임 15판)으로 연 장 중 새 조건을 못 채운 것은 닫는다(채우면 연출·보상과 함께 다시 열린다)
+const progNow = () => chapterProg(Object.fromEntries(GAMES.map(G => [G.id, ctx[G.id].rec.best])));
+if (A.cv !== 2) { const p = progNow(); for (const k in A.chapters) if (!(p[k - 1] && p[k - 1].done)) delete A.chapters[k]; A.cv = 2; }
+const chOpen = n => n === 1 || !!A.chapters[n];
+// 장 n 구간에서 아직 안 푼 첫 판(없으면 0)
+const nextIn = (c, n) => { const [lo, hi] = rangeOf(n); for (let s = lo; s <= hi; s++) if (!c.rec.best[s]) return s; return 0; };
+
 const saveC = (c = C) => { c.S.save('rec', c.rec); c.S.save('state', c.state); };
 const frontier = () => frontierOf(C.rec);
 function session() {
@@ -2577,26 +2929,27 @@ const fmtLong = ms => { const s = Math.round(ms / 1000), h = s / 3600 | 0, m = (
 let cur = { mode: 'L', st: 1 }, board = null, mounted = null;
 const cb = {
   onPlay(ms) { C.rec.play += ms; },
-  onEdit(fen, ms) { if (cur.mode === 'T' || cur.mode === 'S') return; const s = C.state[cur.mode]; if (!s) return; s.fen = fen; s.ms = ms; saveC(); },
+  // 풀린 뒤의 저장은 버린다(한붓 퍼즐은 onWin 뒤에도 저장을 부르는데, 그때 슬롯은 이미 다음 판이다)
+  onEdit(fen, ms) { if (cur.mode === 'T' || cur.mode === 'S' || board && board.solved) return; const s = C.state[cur.mode]; if (!s) return; s.fen = fen; s.ms = ms; saveC(); },
   onWin(ms) {
     if (cur.mode === 'T') return lapWin();
     ms = Math.round(ms);
     const rec = C.rec, state = C.state, G = C.G;
-    if (cur.mode === 'S') { $('hd').innerHTML = headText() + ` · ${fmt(ms)}`; $('re').hidden = true; $('nx').hidden = false; saveC(); try { cur.onWin && cur.onWin(ms); } catch (e) {} return; }
+    if (cur.mode === 'S') { $('hd').innerHTML = headText() + ` · ${fmt(ms)}`; $('re').hidden = true; $('nx').hidden = false; paintHint(); saveC(); try { cur.onWin && cur.onWin(ms); } catch (e) {} return; }
     if (cur.mode === 'D') {
       rec.daily[cur.day] = { ms, v: G.GEN_VER }; state.D = null;
       const n = runEnding(rec, cur.day);
       rec.streak = { cur: n, best: Math.max(rec.streak.best, n), last: Math.max(rec.streak.last, cur.day) };
     } else if (cur.mode === 'P') { rec.daily[cur.day] = { ms, v: G.GEN_VER, late: true }; state.P = null; }
     else {
-      const o = rec.best[cur.st];
-      if (!o || o.ms == null || ms < o.ms) rec.best[cur.st] = { ms, v: G.GEN_VER };
+      const o = rec.best[cur.st], h = (state[cur.mode] && state[cur.mode].h) | 0;
+      if (!o || o.ms == null || ms < o.ms) rec.best[cur.st] = { ms, v: G.GEN_VER, ...(h ? { h } : {}) };
       rec.solves++; rec.solveMs += ms;
       if (cur.mode === 'L') state.L = { st: cur.st + 1, fen: blankFen(G), ms: 0 }; else state.R = null;
     }
     saveC();
     $('hd').innerHTML = headText() + ` · ${fmt(ms)}`;
-    $('re').hidden = true; $('nx').hidden = false;
+    $('re').hidden = true; $('nx').hidden = false; paintHint();
     paintDots();
   },
   onDemoEnd() { C.state.demo = 1; saveC(); },
@@ -2619,12 +2972,12 @@ function show(P, s, demo, onShown) {
     $('hd').innerHTML = `${headText()} · ${C.G.head(P)}`;
     $('tip').innerHTML = C.G.tip(P);
     $('re').hidden = false; $('nx').hidden = true; $('b').classList.remove('wait');
-    board.open(P, s.fen, s.ms, demo);
+    board.open(P, s.fen, s.ms, demo); paintHint();
     if (route.cur !== 'board') board.stop();
     if (onShown) onShown();
   };
   if (P && typeof P.then === 'function') {
-    $('hd').textContent = `${headText()} · 판 만드는 중`; $('tip').textContent = ''; $('re').hidden = true; $('nx').hidden = true; $('b').classList.add('wait');
+    $('hd').textContent = `${headText()} · 판 만드는 중`; $('tip').textContent = ''; $('re').hidden = true; $('nx').hidden = true; $('b').classList.add('wait'); $('hintBtn').hidden = true;
     board.stop();
     P.then(go, () => go(null));
   } else go(P);
@@ -2632,13 +2985,13 @@ function show(P, s, demo, onShown) {
 const gen = (st, seed) => { try { return C.G.gen(st, seed); } catch (e) { return null; } };
 function openL() {
   const st = C.state.L.st;
-  cur = { mode: 'L', st }; C.state.cur = 'L'; saveC(); select(C.G.id);
+  cur = { mode: 'L', st }; C.state.cur = 'L'; saveC(); select(C.G.id); seeCh(st);
   route.go('board');
   show(gen(st, st), C.state.L, !C.state.demo && st === 1);
 }
 function openR(st) {
   if (!C.state.R || C.state.R.st !== st) C.state.R = { st, fen: blankFen(C.G), ms: 0 };
-  cur = { mode: 'R', st }; C.state.cur = 'R'; saveC();
+  cur = { mode: 'R', st }; C.state.cur = 'R'; saveC(); seeCh(st);
   route.go('board');
   show(gen(st, st), C.state.R, false);
 }
@@ -2695,8 +3048,9 @@ function summary() {
   }
   return out;
 }
-// 지도 홈 state(map.js 계약). solved = 사다리 + 랩 푼 판(목장 성장), best = 사다리 최고 판(손님 판 난이도)
+// 지도 홈 state(map.js 계약). solved = 사다리 + 랩 푼 판, best = 사다리 최고 판(손님 판 난이도)
 // dailyDone: 오늘의 판이 아직 안 열렸으면(2판 미만) 점을 그리지 않도록 true로 넘긴다
+// chapters[n] = { open, need, prog: 게임별 구간 푼 판 수, next: 게임별 구간 이어 하기 판 }
 const bestSt = rec => frontierOf(rec) - 1;
 function homeState() {
   const d = dayNum(), out = {}, best = {};
@@ -2705,9 +3059,9 @@ function homeState() {
     best[G.id] = bestSt(rec);
     out[G.id] = { solved: n + (rec.lapN | 0), best: best[G.id], next: state.L.st, dailyDone: solvedOn(rec, d) || n < 2 };
   }
-  // 장: 기록(열어 본 장)이 있으면 열림. 조건만 채운 장은 홈에서 문 열림 연출을 보일 때(opening) 열린다
-  const gate = chapterGate(out), chapters = {};
-  for (const n in gate) chapters[n] = { open: !!A.chapters[n] || +n === opening, need: gate[n].need };
+  // 장: 기록(열린 장)이 있으면 열림. 조건만 채운 장은 홈에서 문 열림 연출을 보일 때(opening) 열린다
+  const prog = progNow(), gate = chapterGate(prog), chapters = {};
+  for (const c of CHAPTERS) chapters[c.n] = { open: c.n === 1 || !!A.chapters[c.n] || c.n === opening, need: c.n > 1 ? gate[c.n].need : 0, prog: prog[c.n], next: Object.fromEntries(GAMES.map(G => [G.id, nextIn(ctx[G.id], c.n) || rangeOf(c.n)[0]])) };
   return { summary: out, date: new Date(), rec: { guests: A.guests, best }, art: { ...art(), pen: SPR }, chapters, opening,
     onEnter: openGame, onDaily: openDaily, onGuest: openGuest, onLocked: openPreview, onPreview: openPreview, onOpened: openedSheet };
 }
@@ -2720,28 +3074,28 @@ function homeBar() {
     '<button class="ic" data-go="set" aria-label="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></button>';
   return el;
 }
-// how = 'enter'(홈에 들어옴: 마지막 게임의 지역이 보이게) | 그 밖(다시 그리기: 스크롤 유지)
-// 조건을 채운 장이 있고 기록이 없으면 이번에 연다: 기록 → 문 쪽으로 스크롤 → 안개 1초 → 이야기 시트 → 닫으면 새 지역으로 스크롤
+// how = 'enter'(홈에 들어옴: 마지막으로 놀던 장의 지역이 보이게) | 그 밖(다시 그리기: 스크롤 유지)
+// 장을 마쳤는데 다음 장 기록이 없으면 이번에 연다: 기록·힌트 쿠폰 3장 → 문 쪽으로 스크롤 → 안개 1초 → 이야기 시트(+ 보상 줄) → 닫으면 새 지역으로 스크롤
 let homeMap = null, opening = null;
 function paintHome(how) {
   const y = scrollY;
   opening = null;
   if (!sheetAfter) {
-    const g = chapterGate(homeState().summary), n = Object.keys(g).map(Number).find(k => g[k].open && !A.chapters[k]);
-    if (n) { opening = n; A.chapters[n] = { day: dayNum() }; app.save('rec', A); }
+    const p = progNow(), n = CHAPTERS.map(c => c.n).find(k => k > 1 && p[k - 1].done && !A.chapters[k]);
+    if (n) { opening = n; A.chapters[n] = { day: dayNum() }; A.hints += REWARD; app.save('rec', A); }
   }
   homeMap = window.__hub.renderHome(homeState());
   $('home').replaceChildren(homeBar(), homeMap);
   if (opening) scrollTo(0, Math.max(0, regionY(opening) - innerHeight * .45));
-  else if (how === 'enter') scrollTo(0, regionY(chapterOf(A.last)));
+  else if (how === 'enter') scrollTo(0, regionY(lastCh()));
   else scrollTo(0, y);
   if (sheetAfter) { const s = sheetAfter; sheetAfter = null; sheet(s.g, s.lines, false); }
 }
-// 게임의 장(잠겨 있으면 열린 장 중 가장 아래)과 그 지역 윗변의 문서 y(고정 상태 줄 아래로)
-function chapterOf(id) {
-  const c = CHAPTERS.find(c => c.game === id);
-  const open = n => n === 1 || !!A.chapters[n];
-  return c && open(c.n) ? c.n : Math.max(...CHAPTERS.filter(c => open(c.n)).map(c => c.n));
+// 마지막으로 놀던 장(열려 있지 않으면 열린 장 중 가장 아래)과 그 지역 윗변의 문서 y(고정 상태 줄 아래로)
+function seeCh(st) { const n = Math.min(chOf(st), PLAY_CH); if (A.lastCh !== n) { A.lastCh = n; app.save('rec', A); } }
+function lastCh() {
+  const n = A.lastCh | 0;
+  return n && chOpen(n) ? n : Math.max(...CHAPTERS.filter(c => !c.soon && chOpen(c.n)).map(c => c.n));
 }
 function regionY(n) {
   const r = document.querySelector(`#home .lv-reg[data-ch="${n}"]`), bar = document.querySelector('#home .hbar');
@@ -2752,12 +3106,20 @@ function openedSheet(n) {
   closePreview();
   sheetCh = n;
   $('gsPic').hidden = true; $('gs').querySelector('.gsc').classList.add('np');
-  $('gsTx').textContent = CHAPTER_STORY[n].join('\n');
+  $('gsTx').textContent = [...CHAPTER_STORY[n], `힌트 쿠폰 ${REWARD}장을 받았다.`].join('\n');
   $('gsGo').hidden = true;
   $('gs').hidden = false;
   sheetEntry();
 }
-function openGame(id) { select(id); openL(); push('board', { m: 'L', g: id }); }
+// 지역의 자리 탭: 그 게임의 그 장 구간. 이어 하기 판이 구간 안이면 그 판(L), 아니면 구간에서 안 푼 첫 판(R), 다 풀었으면 그 구간 판 고르기(다시 풀기)
+function openGame(id, n) {
+  select(id);
+  n = n || Math.min(chOf(C.state.L.st), PLAY_CH);
+  const st = nextIn(C, n);
+  if (!st) { pickCh = n; push('pick', { g: id }); return route.go('pick'); }
+  if (st === C.state.L.st) { openL(); push('board', { m: 'L', g: id }); }
+  else { openR(st); push('board', { m: 'R', g: id }); }
+}
 function openDaily(id) { select(id); openD(); boardEntry('D'); }
 
 // 손님 시트: 처음 온 동물은 이야기 + 같이 풀기(특별 판), 이미 정착한 동물의 방문은 이야기만. 풀면 정착 이야기를 같은 시트에
@@ -2786,8 +3148,8 @@ function sheetClosed() {
   if (!n) return paintHome();
   // 장 이야기를 닫으면 새 지역으로 부드럽게 스크롤. 함께 열린 장이 더 있으면 이어서 연다
   scrollTo({ top: regionY(n), behavior: 'smooth' });
-  const g = chapterGate(homeState().summary);
-  if (Object.keys(g).some(k => g[k].open && !A.chapters[k])) setTimeout(() => { if (route.cur === 'home' && $('gs').hidden) paintHome(); }, 900);
+  const p = progNow();
+  if (CHAPTERS.some(c => c.n > 1 && p[c.n - 1].done && !A.chapters[c.n])) setTimeout(() => { if (route.cur === 'home' && $('gs').hidden) paintHome(); }, 900);
 }
 function closeSheet() { const was = !$('gs').hidden; $('gs').hidden = true; sheetG = null; sheetCh = 0; return was; }
 function openGuest(g) {
@@ -2800,38 +3162,33 @@ $('gsGo').onclick = () => {
   closeSheet();
   openSpecial(g.gameId, g.st, g.seed, () => { sheetAfter = { g, lines: settle(A, g, new Date()) }; app.save('rec', A); });
 };
-// 장 미리 보기: 다 열리고 다 자란 모습(열린 장은 지금 모습과 나란히) + 규칙 한 줄 + 열림 조건 + 맛보기 한 판(기록 없음, 장을 열지 않음)
-const TASTE = { st: 2, seed: 4242 };
+// 장 미리 보기: 다 열리고 다 자란 모습(열린 장은 지금 모습과 나란히) + 세 게임 규칙 + 열림 조건 + 맛보기 세 판(각 게임 그 장 첫 판, 기록 없음, 장을 열지 않음)
 let pvN = 0;
 const ymd = d => `${d / 10000 | 0}년 ${(d / 100 | 0) % 100}월 ${d % 100}일`;
 function openPreview(n) {
   if (route.cur !== 'home') return;
   closeSheet();
-  const c = CHAPTERS[n - 1], G = ctx[c.game].G, st = homeState(), open = n === 1 || !!A.chapters[n];
+  const c = CHAPTERS[n - 1], st = homeState(), open = chOpen(n);
   pvN = n;
-  $('pvT').textContent = `${n}장 ${c.name} · ${G.title}`;
+  $('pvT').textContent = `${n}장 ${c.name}`;
   const fig = (full, cap) => { const f = document.createElement('figure'); if (cap) f.innerHTML = `<figcaption>${cap}</figcaption>`; f.appendChild(renderPreview(st, n, full)); return f; };
   $('pvPic').className = 'pvp' + (open ? ' two' : '');
   $('pvPic').replaceChildren(...(open ? [fig(false, '지금'), fig(true, '완성')] : [fig(true)]));
-  $('pvRule').textContent = G.rule;
-  let cond;
-  if (n === 1) cond = '처음부터 열려 있다';
-  else if (open) cond = `${ymd(A.chapters[n].day)}에 열렸다`;
-  else {
-    const prev = CHAPTERS[n - 2], need = st.chapters[n].need, wait = prev.from && !A.chapters[prev.n] ? `${prev.n}장이 열린 뒤 ` : '';
-    cond = `${wait}${ctx[c.from].G.title} ${need}판 더 풀면 열려요`;
-  }
-  $('pvCond').textContent = cond;
+  // 세 게임 규칙 한 줄씩 + 맛보기(그 장 첫 판, 기록 없음). 4장은 준비 중
+  $('pvRule').innerHTML = c.soon ? '<p>숲으로 드는 길은 준비 중이에요.</p>' : GAMES.map(G => `<p><b>${G.title}</b> ${G.rule}</p>`).join('');
+  $('pvTaste').hidden = !!c.soon;
+  $('pvCond').textContent = n === 1 ? '처음부터 열려 있다' : open ? `${dayLabel(A.chapters[n].day)}에 열렸다 · 힌트 쿠폰 ${REWARD}장` : `${n - 1}장의 세 게임을 다 풀면 열려요`;
   $('pv').hidden = false; $('pv').querySelector('.gsc').scrollTop = 0;
   sheetEntry();
 }
 function closePreview() { const was = !$('pv').hidden; $('pv').hidden = true; pvN = 0; return was; }
 $('pvX').onclick = dismissSheet;
-$('pvGo').onclick = () => {
-  const n = pvN; if (!n) return;
+$('pvTaste').addEventListener('click', e => {
+  const b = e.target.closest('button[data-taste]'), n = pvN; if (!b || !n) return;
   closePreview();
-  openSpecial(CHAPTERS[n - 1].game, TASTE.st, TASTE.seed, () => {}, '맛보기');
-};
+  const st = rangeOf(n)[0];
+  openSpecial(b.dataset.taste, st, st, () => {}, '맛보기');
+});
 function guestBook() {
   const pics = art();
   return '<div class="gbk">' + GUESTS.map(a => {
@@ -2842,7 +3199,7 @@ function guestBook() {
   }).join('') + '</div>';
 }
 $('home').addEventListener('click', e => {
-  const g = e.target.closest('[data-game]'); if (g && ctx[g.dataset.game]) return openGame(g.dataset.game);
+  const g = e.target.closest('[data-game]'); if (g && ctx[g.dataset.game]) return openGame(g.dataset.game, +g.dataset.ch || 0);
   const b = e.target.closest('[data-go]'); if (!b) return;
   const t = b.dataset.go; if (t !== 'book' && t !== 'set') return;
   push(t); route.go(t, t === 'book' ? (A.last || GAMES[0].id) : undefined);
@@ -2856,7 +3213,7 @@ const route = router({
   daily: { enter: paintDaily },
   lap: { enter: paintLap },
   lapdone: { enter: paintLapDone },
-  pick: { enter: paintPick },
+  pick: { enter(arg) { if (arg !== undefined) pickCh = +arg; paintPick(); } },
   book: { enter(tab) { if (tab) bookTab = tab; paintBook(); } },
   set: { enter: paintSet },
   move: { enter(what) { paintMove(what); } },
@@ -2902,12 +3259,16 @@ $('s-daily').addEventListener('click', e => {
   if (day === d) { openD(); push('board', { m: 'D', g: C.G.id }); } else { openP(day); push('board', { m: 'P', g: C.G.id }); }
 });
 
+// 판 고르기. pickCh = 장(지도에서 다 푼 자리를 눌렀을 때: 그 구간만, "다시 풀기") | 0(메뉴: 전체)
+// 힌트를 2장 이상 쓴 판은 시간 아래 작은 "힌트"
+let pickCh = 0;
 function paintPick() {
-  const rec = C.rec, f = frontier(), n = Math.max(30, Math.ceil((f + 10) / 5) * 5);
+  const rec = C.rec, f = frontier(), [lo, hi] = pickCh ? rangeOf(pickCh) : [1, Math.max(30, Math.ceil((f + 10) / 5) * 5)];
+  $('pkT').textContent = pickCh ? `${pickCh}장 · ${C.G.title} 다시 풀기` : '판 고르기';
   let h = '';
-  for (let s = 1; s <= n; s++) {
+  for (let s = lo; s <= hi; s++) {
     const b = rec.best[s];
-    if (b) h += `<button class="pk done" data-st="${s}"><b>${s}</b><span>${fmt(b.ms)}</span></button>`;
+    if (b) h += `<button class="pk done" data-st="${s}"><b>${s}</b><span>${fmt(b.ms)}</span>${b.h >= 2 ? '<i class="ph">힌트</i>' : ''}</button>`;
     else if (s === f) h += `<button class="pk open" data-st="${s}"><b>${s}</b><span>▶</span></button>`;
     else h += `<div class="pk lock"><b>${s}</b></div>`;
   }
@@ -2939,7 +3300,7 @@ $('no').onclick = () => { $('ok').hidden = true; hold.hidden = false; };
 // 초기화는 전체만(모든 게임·앱 기록, app.set은 유지)
 $('yes').onclick = () => {
   for (const G of GAMES) { const c = ctx[G.id]; c.S.drop('rec'); c.S.drop('state'); c.rec = blankRec(G); c.state = { L: { st: 1, fen: blankFen(G), ms: 0 }, demo: 0, v: G.GEN_VER }; saveC(c); }
-  A = { v: 1, ses: { n: 0, day: 0, today: 0 }, last: null, guests: {}, chapters: {} }; session(); app.save('rec', A);
+  A = { v: 1, ses: { n: 0, day: 0, today: 0 }, last: null, guests: {}, chapters: {}, cv: 2, hints: 1 }; session(); app.save('rec', A);
   mounted = null;
   toDepth(0, () => route.go('home'));
 };
@@ -2952,7 +3313,7 @@ function paintMove(what) {
 }
 function copyRec() {
   for (const id in ctx) saveC(ctx[id]); app.save('rec', A);
-  const text = move.encodeAll(A.ses, Object.fromEntries(GAMES.map(G => [G.id, { rec: ctx[G.id].rec, state: ctx[G.id].state }])), A.guests, A.chapters), tx = $('cpTx');
+  const text = move.encodeAll(A.ses, Object.fromEntries(GAMES.map(G => [G.id, { rec: ctx[G.id].rec, state: ctx[G.id].state }])), A.guests, A.chapters, { hints: A.hints }), tx = $('cpTx');
   const manual = () => { tx.value = text; tx.hidden = false; tx.focus(); tx.select(); msg('cpMsg', '자동 복사가 안 돼요. 아래 글을 길게 눌러 모두 복사하세요.'); };
   msg('cpMsg', ''); tx.hidden = true;
   if (!navigator.clipboard || !navigator.clipboard.writeText) return manual();
@@ -2966,7 +3327,8 @@ $('ps').onclick = () => {
   $('psClr').hidden = true;
   const total = () => GAMES.reduce((a, G) => a + Object.keys(ctx[G.id].rec.best).length, 0), before = total();
   for (const id in inc.games) { const c = ctx[id]; move.merge(c.rec, c.state, inc.games[id]); saveC(c); }
-  A.ses.n = Math.max(A.ses.n, inc.sesN); move.mergeGuests(A.guests, inc.guests); move.mergeChapters(A.chapters, inc.chapters); app.save('rec', A);
+  A.ses.n = Math.max(A.ses.n, inc.sesN); move.mergeGuests(A.guests, inc.guests); move.mergeChapters(A.chapters, inc.chapters);
+  A.hints = Math.max(A.hints, inc.hints); app.save('rec', A);
   $('psTx').value = '';
   msg('psMsg', `합쳤어요. 푼 판 ${before} → ${total()} · 이어 하기 ${GAMES.filter(G => inc.games[G.id]).map(G => `${G.id === 'fence' ? '' : G.title + ' '}${ctx[G.id].state.L.st}판`).join(' · ')}`);
 };
@@ -3099,7 +3461,17 @@ if (H) addEventListener('popstate', e => {
 $('mn').onclick = () => { if (cur.mode === 'T') return toDepth(2, () => route.go('menu')); if (cur.mode === 'S') return toDepth(0, () => route.go('home')); push('menu'); route.go('menu'); };
 $('hm').onclick = () => toDepth(0, () => route.go('home'));
 $('re').onclick = () => board && board.clear();
-$('nx').onclick = () => cur.mode === 'P' ? goBack('daily') : cur.mode === 'S' ? toDepth(0, () => route.go('home')) : toDepth(1, openL);
+// ▶: 사다리·다시 푸는 판은 그 장 구간에서 안 푼 다음 판, 구간을 다 풀었으면 홈(다음 구간은 다음 장에서). 31판부터(게임 장 밖)는 사다리 그대로
+function next() {
+  const n = chOf(cur.st), home = () => toDepth(0, () => route.go('home'));
+  if (cur.mode === 'D') return toDepth(1, openL);
+  if (n > PLAY_CH) return toDepth(1, openL);
+  const st = nextIn(C, n);
+  if (!st || !chOpen(n)) return home();
+  if (st === C.state.L.st) return toDepth(1, openL);
+  toDepth(0, () => { openR(st); push('board', { m: 'R', g: C.G.id }); });
+}
+$('nx').onclick = () => cur.mode === 'P' ? goBack('daily') : cur.mode === 'S' ? toDepth(0, () => route.go('home')) : next();
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
   const t = b.dataset.go;
   if (b.closest('.top')) return goBack(t);
@@ -3113,17 +3485,52 @@ $('pk').addEventListener('click', e => {
   const st = +b.dataset.st;
   if (st === C.state.L.st) toDepth(1, openL); else { openR(st); boardEntry('R'); }
 });
+// 힌트 쿠폰 버튼 자리: 판 머리글 오른쪽 "힌트 N"(44px, 사다리·다시 푸는 판·오늘의 판·지난 판에서만, 쿠폰 0이면 흐리게).
+// 누르면 window.__hub.useHint(gameId, boardApi)만 부른다(힌트 고르기·점멸·쿠폰 차감은 src/hint.js). 쓴 뒤 hint.js가 onHintUsed로 알린다
+function paintHint() {
+  const b = $('hintBtn'), on = (cur.mode === 'L' || cur.mode === 'R' || cur.mode === 'D' || cur.mode === 'P') && board && !board.solved;
+  b.hidden = !on; b.classList.toggle('off', A.hints <= 0); b.innerHTML = `힌트 <b>${A.hints}</b>`;
+  b.setAttribute('aria-label', `힌트 쿠폰 ${A.hints}장`);
+}
+let hintBusy = false;
+$('hintBtn').onclick = () => {
+  if (hintBusy || !board || board.solved) return;
+  const r = window.__hub.useHint(C.G.id, board);
+  // useHint는 app.rec.hints를 직접 줄인다. 메모리(A)를 맞춰 두지 않으면 다음 저장 때 차감이 되돌려진다
+  const s = app.load('rec', null); if (s && Number.isInteger(s.hints)) A.hints = s.hints;
+  paintHint();
+  if (r && typeof r === 'object') { hintBusy = true; r.done.then(() => { hintBusy = false; paintHint(); }); }
+};
+// useHint가 쓴 뒤 부른다(gameId, st, 그 보드에서 n번째). 그 판 슬롯에 사용 수 h를 쌓는다(판을 다시 열면 n은 0부터라 기준은 슬롯 h). 풀면 best[st].h = h
+function onHintUsed() {
+  const r = app.load('rec', null); if (r && Number.isInteger(r.hints)) A.hints = r.hints;
+  const slot = C.state[cur.mode]; if (slot && cur.mode !== 'S' && cur.mode !== 'T') { slot.h = (slot.h | 0) + 1; saveC(); }
+  paintHint();
+}
+
 // 디버그·하네스 훅: 지금 화면의 게임·슬롯
-const now = () => ({ game: C.G.id, mode: cur.mode, st: cur.st, day: cur.day, route: route.cur, depth });
+const now = () => ({ game: C.G.id, mode: cur.mode, st: cur.st, day: cur.day, route: route.cur, depth, hints: A.hints, pickCh });
 // 그림(data URL)을 이름으로: 팩 동물 + 예비 동물. 이름은 빌드가 파일 이름에서 넣는다(SPR_NAMES·SPR_SPARE)
 const art = () => ({ ...Object.fromEntries(SPR_NAMES.map((n, i) => [n, SPR[i]])), ...SPR_SPARE });
-window.__hub = { renderHome: renderWorld, summary, art, openSpecial, games: GAMES.map(G => ({ id: G.id, title: G.title })), open: openGame, now };
+window.__hub = { renderHome: renderWorld, summary, art, openSpecial, useHint, onHintUsed, games: GAMES.map(G => ({ id: G.id, title: G.title })), open: openGame, now };
 resume();
 
 return { openSpecial, summary, now, art };
 })();
 
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<style>#swup{position:fixed;left:0;right:0;bottom:0;z-index:100;display:flex;align-items:center;background-color:#3A2A1C;color:#fff;padding:0 4px env(safe-area-inset-bottom,0px) 0;box-shadow:0 -2px 8px #0003}
+#swup button{min-height:44px;height:44px;border-radius:0;background-color:transparent;color:#fff;font-size:15px;font-weight:600;padding:0 16px}
+#swup .go{flex:1;text-align:left}#swup .go b{color:#FFB4A6}#swup .x{width:44px;padding:0;font-size:22px;opacity:.8}</style>
+<script>if('serviceWorker' in navigator){(()=>{const sw=navigator.serviceWorker;let ctl=sw.controller,down=false,refreshing=false,bar=null;
+addEventListener('pointerdown',()=>down=true,true);['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>down=false,true));
+sw.addEventListener('controllerchange',()=>{const prev=ctl;ctl=sw.controller;if(!prev||refreshing)return;refreshing=true;const go=()=>location.reload();if(!down)return go();
+const f=()=>{removeEventListener('pointerup',f,true);removeEventListener('pointercancel',f,true);setTimeout(go,0)};addEventListener('pointerup',f,true);addEventListener('pointercancel',f,true)});
+const show=w=>{if(!sw.controller)return;if(bar)bar.remove();bar=document.createElement('div');bar.id='swup';bar.setAttribute('role','status');
+bar.innerHTML='<button class="go" type="button">새 버전이 있어요 · <b>새로 고침</b></button><button class="x" type="button" aria-label="닫기">×</button>';
+bar.querySelector('.go').onclick=()=>{w.postMessage('skipWaiting');bar.remove();bar=null};bar.querySelector('.x').onclick=()=>{bar.remove();bar=null};document.body.appendChild(bar)};
+sw.register('sw.js').then(reg=>{if(reg.waiting)show(reg.waiting);
+reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')show(w)})});
+const up=()=>reg.update().catch(()=>{});setInterval(up,36e5);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')up()})})})()}</script>
 </body>
 </html>
